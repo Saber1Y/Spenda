@@ -13,7 +13,7 @@ export type WriteArgs = {
   args: readonly unknown[];
 };
 
-export type WriteStatus = {pending: boolean; error?: string; okKey?: number};
+export type WriteStatus = {pending: boolean; error?: string; okKey?: number; lastHash?: `0x${string}`};
 
 /**
  * Owner write with the backend confirmation pattern: submit → wait for raw receipt → READ BACK
@@ -33,7 +33,7 @@ export function useOwnerWrite(refetch: () => void) {
         return;
       }
       refetch(); // read-back the resulting state
-      setStatus({pending: false, okKey: Date.now()});
+      setStatus({pending: false, okKey: Date.now(), lastHash: hash});
     } catch (e) {
       const err = e as {shortMessage?: string; message?: string};
       setStatus({pending: false, error: err.shortMessage ?? err.message ?? "Transaction failed"});
