@@ -15,6 +15,7 @@ import {RunAgentPanel} from "@/components/dashboard/RunAgentPanel";
 import {SyncPanel} from "@/components/dashboard/SyncPanel";
 import {TxHistoryPanel} from "@/components/dashboard/TxHistoryPanel";
 import {AuditTimelinePanel} from "@/components/dashboard/AuditTimelinePanel";
+import {OverviewPanel} from "@/components/dashboard/OverviewPanel";
 import {useVaultEntities} from "@/lib/base44-hooks";
 
 export default function DashboardPage() {
@@ -40,27 +41,28 @@ export default function DashboardPage() {
         {/* DOM order = mobile priority (run + history first, controls last).
             Desktop uses explicit col/row placement - main column left, side column right. */}
         <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <RunAgentPanel refetch={refetchAll} className="lg:col-span-1 lg:col-start-3 lg:row-start-1" />
+          <OverviewPanel className="lg:col-span-3 lg:col-start-1 lg:row-start-1" />
+          <RunAgentPanel refetch={refetchAll} className="lg:col-span-1 lg:col-start-3 lg:row-start-2" />
           <ActionHistoryPanel
             actions={history.actions}
             loading={history.loading}
             error={history.error}
             refetch={history.refetch}
-            className="lg:col-span-2 lg:col-start-1 lg:row-start-3"
+            className="lg:col-span-2 lg:col-start-1 lg:row-start-4"
           />
           <SponsorPanel
             state={state}
             loading={loading}
             error={error}
             onRetry={refetch}
-            className="lg:col-span-1 lg:col-start-3 lg:row-start-2"
+            className="lg:col-span-1 lg:col-start-3 lg:row-start-3"
           />
           <VaultPanel
             state={state}
             loading={loading}
             error={error}
             onRetry={refetch}
-            className="lg:col-span-2 lg:col-start-1 lg:row-start-2"
+            className="lg:col-span-2 lg:col-start-1 lg:row-start-3"
           />
           <PolicyPanel
             agent={agent}
@@ -70,18 +72,18 @@ export default function DashboardPage() {
             onRetry={refetch}
             isOwner={isOwner}
             refetch={refetchAll}
-            className="lg:col-span-2 lg:col-start-1 lg:row-start-1"
+            className="lg:col-span-2 lg:col-start-1 lg:row-start-2"
           />
           <OwnerControls
             agent={agent}
             isOwner={isOwner}
             connected={isConnected}
             refetch={refetchAll}
-            className="lg:col-span-1 lg:col-start-3 lg:row-start-3"
+            className="lg:col-span-1 lg:col-start-3 lg:row-start-4"
           />
-          <SyncPanel className="lg:col-span-1 lg:col-start-3 lg:row-start-4" />
-          <TxHistoryPanel className="lg:col-span-2 lg:col-start-1 lg:row-start-4" />
-          <AuditTimelinePanel vaultId={vaultId} className="lg:col-span-3 lg:col-start-1 lg:row-start-5" />
+          <SyncPanel className="lg:col-span-1 lg:col-start-3 lg:row-start-5" />
+          <TxHistoryPanel className="lg:col-span-2 lg:col-start-1 lg:row-start-5" />
+          <AuditTimelinePanel vaultId={vaultId} className="lg:col-span-3 lg:col-start-1 lg:row-start-6" />
         </div>
       </div>
     </main>
