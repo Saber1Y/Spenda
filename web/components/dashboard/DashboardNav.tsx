@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {Logo} from "@/components/ui/Logo";
 import {OwnerConnectButton} from "./OwnerConnectButton";
+import {UserMenu} from "./UserMenu";
 
 export function DashboardNav() {
   return (
@@ -13,6 +14,7 @@ export function DashboardNav() {
           <Link href="/" className="hidden rounded-pill px-4 py-2 text-body-sm text-aubergine transition hover:bg-bone sm:inline">
             ← Home
           </Link>
+          <UserMenu />
           <OwnerConnectButton />
         </div>
       </nav>
