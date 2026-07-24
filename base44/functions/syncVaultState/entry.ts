@@ -1,22 +1,6 @@
 import {createClientFromRequest} from "npm:@base44/sdk";
-import {createPublicClient, http, getAbiItem} from "npm:viem";
 
 const RPC_URL = "https://rpc.bohr.life";
-const CHAIN_ID = 968;
-
-const botChain = {
-  id: CHAIN_ID,
-  name: "BOT Chain Testnet",
-  network: "bot-testnet",
-  nativeCurrency: {name: "BOT", symbol: "BOT", decimals: 18},
-  rpcUrls: {default: {http: [RPC_URL]}, public: {http: [RPC_URL]}},
-  blockExplorers: {default: {name: "BOTScan", url: "https://scan.bohr.life"}},
-} as const;
-
-const publicClient = createPublicClient({
-  chain: botChain,
-  transport: http(RPC_URL),
-});
 
 const CONTRACTS = {
   entryPoint: "0x0000000071727De22E5E9d8BAf0edAc6f37da032",
@@ -33,21 +17,34 @@ const DEMO = {
 
 const MUSD_DECIMALS = 6;
 
-const vaultAbi = [
-  "function getPolicy(address agent) view returns ((uint128 maxPerTx,uint128 dailyCap,uint128 spentToday,uint64 lastResetTime,uint64 expiry,bool active))",
-  "function remainingDailyCap(address agent) view returns (uint256)",
-  "function allowedTarget(address agent,address target) view returns (bool)",
-  "function allowedToken(address agent,address token) view returns (bool)",
-  "function owner() view returns (address)",
-] as const;
+let rpcId = 0;
+async function ethCall(to: string, data: string): Promise<string> {
+  const res = await fetch(RPC_URL, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({jsonrpc: "2.0", id: ++rpcId, method: "eth_call", params: [{to, data}, "latest"]}),
+  });
+  const json = await res.json();
+  if (json.error) throw new Error(`RPC error: ${json.error.message}`);
+  return json.result;
+}
 
-const erc20Abi = [
-  "function balanceOf(address) view returns (uint256)",
-] as const;
+function encodeABI(sig: string, ...args: string[]): string {
+  const sel = sig.slice(0, 10);
+  return sel + args.map(a => a.slice(2).padStart(64, "0")).join("");
+}
 
-const entryPointAbi = [
-  "function balanceOf(address) view returns (uint256)",
-] as const;
+function decodeUint256(result: string, offset = 0): bigint {
+  return BigInt("0x" + result.slice(2 + offset * 64, 2 + (offset + 1) * 64));
+}
+
+function decodeBool(result: string, offset = 0): boolean {
+  return decodeUint256(result, offset) !== 0n;
+}
+
+function decodeAddress(result: string, offset = 0): string {
+  return "0x" + result.slice(2 + (offset + 1) * 24, 2 + (offset + 1) * 24 + 40).toLowerCase();
+}
 
 function formatAmount(baseUnits: bigint, decimals: number): string {
   const divisor = 10n ** BigInt(decimals);
@@ -56,28 +53,55 @@ function formatAmount(baseUnits: bigint, decimals: number): string {
   return `${whole}.${frac.toString().padStart(decimals, "0")}`;
 }
 
+const GET_POLICY_SEL = "0x3791dc6a";
+const REMAINING_DAILY_SEL = "0x29d99a45";
+const BALANCE_OF_SEL = "0x70a08231";
+const OWNER_SEL = "0x8da5cb5b";
+
+const GET_CODE_METHOD = "eth_getCode";
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-
     const vaultAddr = CONTRACTS.vault;
     const agent = DEMO.agent;
 
     const [
-      vaultBalance,
-      policy,
-      remainingDailyCap,
-      paymasterDeposit,
-      agentCode,
+      vaultBalanceResult,
+      policyResult,
+      remainingResult,
+      paymasterDepositResult,
+      ownerResult,
+      codeResult,
     ] = await Promise.all([
-      publicClient.readContract({address: CONTRACTS.mockUSD, abi: erc20Abi, functionName: "balanceOf", args: [vaultAddr]}),
-      publicClient.readContract({address: vaultAddr, abi: vaultAbi, functionName: "getPolicy", args: [agent]}),
-      publicClient.readContract({address: vaultAddr, abi: vaultAbi, functionName: "remainingDailyCap", args: [agent]}),
-      publicClient.readContract({address: CONTRACTS.entryPoint, abi: entryPointAbi, functionName: "balanceOf", args: [CONTRACTS.paymaster]}),
-      publicClient.getCode({address: agent}),
+      ethCall(CONTRACTS.mockUSD, encodeABI(BALANCE_OF_SEL, vaultAddr)),
+      ethCall(vaultAddr, encodeABI(GET_POLICY_SEL, agent)),
+      ethCall(vaultAddr, encodeABI(REMAINING_DAILY_SEL, agent)),
+      ethCall(CONTRACTS.entryPoint, encodeABI(BALANCE_OF_SEL, CONTRACTS.paymaster)),
+      ethCall(vaultAddr, OWNER_SEL),
+      (async () => {
+        const res = await fetch(RPC_URL, {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({jsonrpc: "2.0", id: ++rpcId, method: GET_CODE_METHOD, params: [agent, "latest"]}),
+        });
+        const json = await res.json();
+        return json.result;
+      })(),
     ]);
 
-    const p = policy as {maxPerTx: bigint; dailyCap: bigint; spentToday: bigint; lastResetTime: bigint; expiry: bigint; active: boolean};
+    const vaultBalance = decodeUint256(vaultBalanceResult);
+    const policyData = policyResult;
+    const maxPerTx = decodeUint256(policyData, 0);
+    const dailyCap = decodeUint256(policyData, 1);
+    const spentToday = decodeUint256(policyData, 2);
+    const lastResetTime = decodeUint256(policyData, 3);
+    const expiry = decodeUint256(policyData, 4);
+    const active = decodeBool(policyData, 5);
+    const remainingDailyCap = decodeUint256(remainingResult);
+    const paymasterDeposit = decodeUint256(paymasterDepositResult);
+    const isDeployed = !!codeResult && codeResult !== "0x";
+
     const now = new Date().toISOString();
 
     const existingVaults = await base44.asServiceRole.entities.Vault.filter({contract_address: vaultAddr});
@@ -91,7 +115,7 @@ Deno.serve(async (req) => {
       token_symbol: "mUSD",
       token_decimals: MUSD_DECIMALS,
       vault_balance: vaultBalance.toString(),
-      total_spent: p.spentToday.toString(),
+      total_spent: spentToday.toString(),
       paymaster_address: CONTRACTS.paymaster,
       paymaster_deposit: paymasterDeposit.toString(),
       status: "active" as const,
@@ -99,36 +123,41 @@ Deno.serve(async (req) => {
     };
 
     let vaultId: string;
+    let vaultWasCreated = false;
     if (existingVaults.length > 0) {
       const updated = await base44.asServiceRole.entities.Vault.update(existingVaults[0].id, vaultData);
       vaultId = updated.id;
     } else {
       const created = await base44.asServiceRole.entities.Vault.create(vaultData);
       vaultId = created.id;
+      vaultWasCreated = true;
     }
 
     const existingPolicies = await base44.asServiceRole.entities.Policy.filter({vault_id: vaultId, agent_address: agent});
 
-    const policyData = {
+    const policyEntityData = {
       vault_id: vaultId,
       agent_address: agent,
-      max_per_tx: p.maxPerTx.toString(),
-      daily_cap: p.dailyCap.toString(),
-      spent_today: p.spentToday.toString(),
+      max_per_tx: maxPerTx.toString(),
+      daily_cap: dailyCap.toString(),
+      spent_today: spentToday.toString(),
       remaining_daily: remainingDailyCap.toString(),
-      expiry: p.expiry.toString(),
-      active: p.active,
+      expiry: expiry.toString(),
+      active: active,
       last_synced_at: now,
     };
 
+    let policyWasCreated = false;
     if (existingPolicies.length > 0) {
-      await base44.asServiceRole.entities.Policy.update(existingPolicies[0].id, policyData);
+      await base44.asServiceRole.entities.Policy.update(existingPolicies[0].id, policyEntityData);
     } else {
-      await base44.asServiceRole.entities.Policy.create(policyData);
+      await base44.asServiceRole.entities.Policy.create(policyEntityData);
+      policyWasCreated = true;
     }
 
     const existingAgents = await base44.asServiceRole.entities.Agent.filter({vault_id: vaultId, address: agent});
 
+    let agentWasCreated = false;
     if (existingAgents.length === 0) {
       await base44.asServiceRole.entities.Agent.create({
         vault_id: vaultId,
@@ -136,8 +165,67 @@ Deno.serve(async (req) => {
         owner_eoa: DEMO.agentOwnerEOA,
         display_name: "ProcurementBot",
         description: "Demo agent for Spenda hackathon",
-        status: p.active ? "active" : "revoked",
-        is_deployed: !!agentCode && agentCode !== "0x",
+        status: active ? "active" : "revoked",
+        is_deployed: isDeployed,
+      });
+      agentWasCreated = true;
+    }
+
+    if (vaultWasCreated) {
+      await base44.asServiceRole.entities.AuditLog.create({
+        vault_id: vaultId,
+        action: "VAULT_CREATED",
+        actor: "system",
+        actor_type: "system",
+        metadata: {contract_address: vaultAddr, chain_id: 968},
+        timestamp: now,
+      });
+    }
+
+    if (policyWasCreated) {
+      await base44.asServiceRole.entities.AuditLog.create({
+        vault_id: vaultId,
+        action: "POLICY_CREATED",
+        actor: "system",
+        actor_type: "system",
+        metadata: {
+          agent_address: agent,
+          max_per_tx: formatAmount(maxPerTx, MUSD_DECIMALS),
+          daily_cap: formatAmount(dailyCap, MUSD_DECIMALS),
+          active,
+        },
+        timestamp: now,
+      });
+    } else {
+      await base44.asServiceRole.entities.AuditLog.create({
+        vault_id: vaultId,
+        action: "POLICY_UPDATED",
+        actor: "system",
+        actor_type: "system",
+        metadata: {
+          agent_address: agent,
+          max_per_tx: formatAmount(maxPerTx, MUSD_DECIMALS),
+          daily_cap: formatAmount(dailyCap, MUSD_DECIMALS),
+          spent_today: formatAmount(spentToday, MUSD_DECIMALS),
+          active,
+        },
+        timestamp: now,
+      });
+    }
+
+    if (agentWasCreated) {
+      await base44.asServiceRole.entities.AuditLog.create({
+        vault_id: vaultId,
+        action: "AGENT_REGISTERED",
+        actor: "system",
+        actor_type: "system",
+        metadata: {
+          agent_address: agent,
+          owner_eoa: DEMO.agentOwnerEOA,
+          display_name: "ProcurementBot",
+          is_deployed: isDeployed,
+        },
+        timestamp: now,
       });
     }
 
@@ -146,15 +234,15 @@ Deno.serve(async (req) => {
       vault_id: vaultId,
       vault_balance: formatAmount(vaultBalance, MUSD_DECIMALS),
       policy: {
-        max_per_tx: formatAmount(p.maxPerTx, MUSD_DECIMALS),
-        daily_cap: formatAmount(p.dailyCap, MUSD_DECIMALS),
-        spent_today: formatAmount(p.spentToday, MUSD_DECIMALS),
+        max_per_tx: formatAmount(maxPerTx, MUSD_DECIMALS),
+        daily_cap: formatAmount(dailyCap, MUSD_DECIMALS),
+        spent_today: formatAmount(spentToday, MUSD_DECIMALS),
         remaining_daily: formatAmount(remainingDailyCap, MUSD_DECIMALS),
-        active: p.active,
+        active: active,
       },
     });
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
-    return Response.json({ok: false, error: msg}, {status: 500});
+    return Response.json({ok: false, error: msg}, {status: 200});
   }
 });
