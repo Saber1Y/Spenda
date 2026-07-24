@@ -57,6 +57,8 @@ const GET_POLICY_SEL = "0x3791dc6a";
 const REMAINING_DAILY_SEL = "0x29d99a45";
 const BALANCE_OF_SEL = "0x70a08231";
 const OWNER_SEL = "0x8da5cb5b";
+const ALLOWED_TARGET_SEL = "0xed8f4e2d";
+const ALLOWED_TOKEN_SEL = "0xe02f7f62";
 
 const GET_CODE_METHOD = "eth_getCode";
 
@@ -227,6 +229,35 @@ Deno.serve(async (req) => {
         },
         timestamp: now,
       });
+    }
+
+    const [targetAllowedResult, tokenAllowedResult] = await Promise.all([
+      ethCall(vaultAddr, encodeABI(ALLOWED_TARGET_SEL, agent, DEMO.vendor)),
+      ethCall(vaultAddr, encodeABI(ALLOWED_TOKEN_SEL, agent, CONTRACTS.mockUSD)),
+    ]);
+    const targetAllowed = decodeBool(targetAllowedResult);
+    const tokenAllowed = decodeBool(tokenAllowedResult);
+
+    const allowlistEntries = [
+      {address: DEMO.vendor, kind: "target" as const, label: "Demo Vendor", allowed: targetAllowed},
+      {address: CONTRACTS.mockUSD, kind: "token" as const, label: "mUSD", allowed: tokenAllowed},
+    ];
+
+    for (const entry of allowlistEntries) {
+      const existing = await base44.asServiceRole.entities.AllowlistEntry.filter({vault_id: vaultId, address: entry.address});
+      const data = {
+        vault_id: vaultId,
+        policy_id: existingPolicies[0]?.id ?? "",
+        address: entry.address,
+        kind: entry.kind,
+        label: entry.label,
+        status: entry.allowed ? "active" : "removed",
+      };
+      if (existing.length > 0) {
+        await base44.asServiceRole.entities.AllowlistEntry.update(existing[0].id, data);
+      } else {
+        await base44.asServiceRole.entities.AllowlistEntry.create(data);
+      }
     }
 
     return Response.json({
