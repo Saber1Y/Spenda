@@ -20,11 +20,13 @@ export function SyncPanel({className = ""}: {className?: string}) {
     setVaultResult(null);
     try {
       const client = getBase44Client();
-      const res = await client.functions.invoke("syncVaultState", {body: {}});
+      const raw = await client.functions.invoke("syncVaultState", {body: {}});
+      const res = raw?.data ?? raw;
       setLastVaultSync(new Date().toLocaleTimeString());
       setVaultResult(res?.ok ? "Vault state synced" : res?.error ?? "Sync completed");
     } catch (e) {
-      setVaultResult(e instanceof Error ? e.message : "Sync failed");
+      console.error("[SyncVault] exception:", e);
+      setVaultResult(e instanceof Error ? e.message : String(e));
     } finally {
       setSyncingVault(false);
     }
@@ -35,14 +37,16 @@ export function SyncPanel({className = ""}: {className?: string}) {
     setTxResult(null);
     try {
       const client = getBase44Client();
-      const res = await client.functions.invoke("syncTransactions", {body: {}});
+      const raw = await client.functions.invoke("syncTransactions", {body: {}});
+      const res = raw?.data ?? raw;
       setLastTxSync(new Date().toLocaleTimeString());
       const msg = res?.ok
         ? `${res.new_records ?? 0} new records (${res.approved ?? 0} approved, ${res.blocked ?? 0} blocked)`
         : res?.error ?? "Sync completed";
       setTxResult(msg);
     } catch (e) {
-      setTxResult(e instanceof Error ? e.message : "Sync failed");
+      console.error("[SyncTx] exception:", e);
+      setTxResult(e instanceof Error ? e.message : String(e));
     } finally {
       setSyncingTx(false);
     }

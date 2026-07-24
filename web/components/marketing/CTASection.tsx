@@ -11,8 +11,8 @@ export function CTASection() {
           A wallet your agent can&rsquo;t drain.
         </h2>
         <p className="mx-auto mt-6 max-w-[52ch] text-body text-paper-white/70">
-          Watch the policy, the sponsor status and every approved and blocked action — live from the deployed
-          contracts on BOT Chain 968.
+          The Base44 control plane syncs vault state, policy, allowlists, transactions and audit logs from
+          on-chain into queryable entities. Watch everything live from the deployed contracts on BOT Chain 968.
         </p>
         <div className="mt-10 flex justify-center">
           <LinkButton href="/dashboard" variant="onDark" size="md">

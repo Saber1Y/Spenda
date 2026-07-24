@@ -23,7 +23,8 @@ export function Hero() {
         <p className="mx-auto mt-7 max-w-[60ch] text-subheading text-fog">
           Spenda doesn&rsquo;t make agents smarter. It makes them safe to fund — the agent holds nothing, a
           sponsor policy fences it to the vault at the gas layer, and the vault enforces caps, allowlists and
-          receipts on-chain.
+          receipts on-chain. The Base44 control plane syncs every on-chain state change into queryable entities
+          so the dashboard, audit logs, and analytics are always live.
         </p>
 
         <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">

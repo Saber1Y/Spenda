@@ -16,6 +16,11 @@ const steps = [
     title: "The vault enforces, then receipts",
     body: "Inside the vault, the spend is checked against caps, allowlists and dedup. Approved moves value and emits a receipt; blocked emits a record and moves nothing.",
   },
+  {
+    n: "04",
+    title: "The control plane stays live",
+    body: "Base44 backend functions read on-chain state and write it into queryable entities — vault balance, policy state, allowlists, transactions, and full audit logs — all synced to the dashboard in real time.",
+  },
 ];
 
 export function HowItWorks() {
