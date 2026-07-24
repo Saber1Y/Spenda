@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="40" viewBox="0 0 180 40">
+  <!-- Mark: stylized S matching favicon palette -->
+  <defs>
+    <linearGradient id="sGrad" x1="0" y1="0" x2="0.3" y2="1">
+      <stop offset="0%" stop-color="#0068d8"/>
+      <stop offset="100%" stop-color="#008080"/>
+    </linearGradient>
+  </defs>
+  <text x="2" y="32" font-family="Inter,system-ui,-apple-system,sans-serif" font-size="34" font-weight="500" fill="url(#sGrad)" letter-spacing="-1.5">S</text>
+  <!-- Wordmark in dark navy matching favicon -->
+  <text x="36" y="32" font-family="Inter,system-ui,-apple-system,sans-serif" font-size="26" font-weight="350" fill="#1c2030" letter-spacing="-0.8">Spenda</text>
+</svg>
