@@ -14,12 +14,16 @@ import {OwnerControls} from "@/components/dashboard/OwnerControls";
 import {RunAgentPanel} from "@/components/dashboard/RunAgentPanel";
 import {SyncPanel} from "@/components/dashboard/SyncPanel";
 import {TxHistoryPanel} from "@/components/dashboard/TxHistoryPanel";
+import {AuditTimelinePanel} from "@/components/dashboard/AuditTimelinePanel";
+import {useVaultEntities} from "@/lib/base44-hooks";
 
 export default function DashboardPage() {
   const agent = DEMO.agent;
   const {data: state, loading, error, refetch} = useVaultState(agent);
   const history = useActionHistory(agent);
   const {address, isConnected} = useAccount();
+  const {data: vaultEntities} = useVaultEntities();
+  const vaultId = vaultEntities?.[0]?.id;
 
   const isOwner = isConnected && !!state && isSameAddress(address, state.vaultOwner);
   const refetchAll = () => {
@@ -77,6 +81,7 @@ export default function DashboardPage() {
           />
           <SyncPanel className="lg:col-span-1 lg:col-start-3 lg:row-start-4" />
           <TxHistoryPanel className="lg:col-span-2 lg:col-start-1 lg:row-start-4" />
+          <AuditTimelinePanel vaultId={vaultId} className="lg:col-span-3 lg:col-start-1 lg:row-start-5" />
         </div>
       </div>
     </main>
