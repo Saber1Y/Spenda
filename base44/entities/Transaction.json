@@ -1,0 +1,76 @@
+{
+  "name": "Transaction",
+  "type": "object",
+  "title": "Transaction",
+  "description": "Record of an agent spend attempt (approved or blocked)",
+  "properties": {
+    "vault_id": {
+      "type": "string",
+      "description": "Reference to the Vault entity"
+    },
+    "agent_address": {
+      "type": "string",
+      "description": "Agent that attempted the spend"
+    },
+    "recipient": {
+      "type": "string",
+      "description": "Target address the agent tried to pay"
+    },
+    "recipient_label": {
+      "type": "string",
+      "description": "Human-readable recipient name if known"
+    },
+    "token": {
+      "type": "string",
+      "description": "Token address used for payment"
+    },
+    "token_symbol": {
+      "type": "string",
+      "description": "Token symbol (e.g. mUSD)"
+    },
+    "amount": {
+      "type": "string",
+      "description": "Amount in base units"
+    },
+    "amount_display": {
+      "type": "string",
+      "description": "Human-readable amount (e.g. '180.00')"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["REQUESTED", "APPROVED", "EXECUTED", "BLOCKED", "FAILED"],
+      "default": "REQUESTED"
+    },
+    "block_reason": {
+      "type": "string",
+      "description": "Reason if blocked (e.g. 'exceeds maxPerTx', 'target not allowlisted')"
+    },
+    "tx_hash": {
+      "type": "string",
+      "description": "On-chain transaction hash"
+    },
+    "block_number": {
+      "type": "string",
+      "description": "Block number when transaction was mined"
+    },
+    "action_id": {
+      "type": "string",
+      "description": "Dedup action ID from the vault"
+    },
+    "user_op_hash": {
+      "type": "string",
+      "description": "ERC-4337 UserOp hash"
+    },
+    "gas_used": {
+      "type": "string",
+      "description": "Gas used if executed"
+    }
+  },
+  "required": ["vault_id", "agent_address", "recipient", "amount", "status"],
+  "rls": {
+    "create": true,
+    "read": {"created_by": "{{user.email}}"},
+    "update": {"created_by": "{{user.email}}"},
+    "delete": false
+  }
+}

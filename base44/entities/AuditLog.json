@@ -1,0 +1,59 @@
+{
+  "name": "AuditLog",
+  "type": "object",
+  "title": "Audit Log",
+  "description": "Chronological record of all important actions in the system",
+  "properties": {
+    "vault_id": {
+      "type": "string",
+      "description": "Reference to the Vault entity"
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "VAULT_CREATED",
+        "POLICY_CREATED",
+        "POLICY_UPDATED",
+        "AGENT_REGISTERED",
+        "AGENT_REVOKED",
+        "ALLOWLIST_UPDATED",
+        "PAYMENT_REQUESTED",
+        "PAYMENT_APPROVED",
+        "PAYMENT_BLOCKED",
+        "PAYMENT_EXECUTED",
+        "PAYMENT_FAILED",
+        "VAULT_FUNDED"
+      ],
+      "description": "Type of action"
+    },
+    "actor": {
+      "type": "string",
+      "description": "Who performed the action (user ID, agent address, or 'system')"
+    },
+    "actor_type": {
+      "type": "string",
+      "enum": ["user", "agent", "system"],
+      "description": "Whether the actor is a human user, agent, or automated system"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional context about the action"
+    },
+    "tx_hash": {
+      "type": "string",
+      "description": "On-chain transaction hash if applicable"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the action occurred"
+    }
+  },
+  "required": ["vault_id", "action", "actor", "actor_type", "timestamp"],
+  "rls": {
+    "create": true,
+    "read": {"created_by": "{{user.email}}"},
+    "update": false,
+    "delete": false
+  }
+}

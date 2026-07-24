@@ -1,0 +1,45 @@
+{
+  "name": "Agent",
+  "type": "object",
+  "title": "Agent",
+  "description": "An AI agent registered with a Spenda vault",
+  "properties": {
+    "vault_id": {
+      "type": "string",
+      "description": "Reference to the Vault entity"
+    },
+    "address": {
+      "type": "string",
+      "description": "SimpleAccount contract address"
+    },
+    "owner_eoa": {
+      "type": "string",
+      "description": "Owner EOA that signs UserOps"
+    },
+    "display_name": {
+      "type": "string",
+      "description": "Human-readable agent name"
+    },
+    "description": {
+      "type": "string",
+      "description": "What this agent does"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["active", "revoked"],
+      "default": "active"
+    },
+    "is_deployed": {
+      "type": "boolean",
+      "description": "Whether the SimpleAccount is deployed on-chain",
+      "default": false
+    }
+  },
+  "required": ["vault_id", "address"],
+  "rls": {
+    "create": true,
+    "read": {"created_by": "{{user.email}}"},
+    "update": {"created_by": "{{user.email}}"},
+    "delete": false
+  }
+}

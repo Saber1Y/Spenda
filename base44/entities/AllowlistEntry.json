@@ -1,0 +1,45 @@
+{
+  "name": "AllowlistEntry",
+  "type": "object",
+  "title": "Allowlist Entry",
+  "description": "An address allowed for agent spending (target or token)",
+  "properties": {
+    "policy_id": {
+      "type": "string",
+      "description": "Reference to the Policy entity"
+    },
+    "vault_id": {
+      "type": "string",
+      "description": "Reference to the Vault entity"
+    },
+    "address": {
+      "type": "string",
+      "description": "Contract address on the allowlist"
+    },
+    "label": {
+      "type": "string",
+      "description": "Human-readable label (e.g. 'AWS', 'OpenAI')"
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["target", "token"],
+      "description": "Whether this is a recipient or token allowlist entry"
+    },
+    "category": {
+      "type": "string",
+      "description": "Optional category for targets (e.g. 'cloud', 'ai', 'saas')"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["active", "removed"],
+      "default": "active"
+    }
+  },
+  "required": ["policy_id", "vault_id", "address", "kind"],
+  "rls": {
+    "create": true,
+    "read": {"created_by": "{{user.email}}"},
+    "update": {"created_by": "{{user.email}}"},
+    "delete": false
+  }
+}

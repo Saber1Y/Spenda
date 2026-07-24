@@ -1,0 +1,53 @@
+{
+  "name": "Policy",
+  "type": "object",
+  "title": "Policy",
+  "description": "Spending policy for an agent (mirrors on-chain BOTSpendVault policy)",
+  "properties": {
+    "vault_id": {
+      "type": "string",
+      "description": "Reference to the Vault entity"
+    },
+    "agent_address": {
+      "type": "string",
+      "description": "Agent address this policy applies to"
+    },
+    "max_per_tx": {
+      "type": "string",
+      "description": "Maximum spend per single transaction (base units)"
+    },
+    "daily_cap": {
+      "type": "string",
+      "description": "Rolling 24h spending limit (base units)"
+    },
+    "spent_today": {
+      "type": "string",
+      "description": "Amount spent in current daily window (base units)"
+    },
+    "remaining_daily": {
+      "type": "string",
+      "description": "Remaining daily budget (base units)"
+    },
+    "expiry": {
+      "type": "string",
+      "description": "Policy expiry timestamp (0 = never)"
+    },
+    "active": {
+      "type": "boolean",
+      "description": "Whether the policy is active",
+      "default": true
+    },
+    "last_synced_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When on-chain policy was last synced"
+    }
+  },
+  "required": ["vault_id", "agent_address"],
+  "rls": {
+    "create": true,
+    "read": {"created_by": "{{user.email}}"},
+    "update": {"created_by": "{{user.email}}"},
+    "delete": false
+  }
+}

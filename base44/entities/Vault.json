@@ -1,0 +1,77 @@
+{
+  "name": "Vault",
+  "type": "object",
+  "title": "Vault",
+  "description": "A Spenda vault holding funds with on-chain enforcement",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "Owner's Base44 user ID"
+    },
+    "contract_address": {
+      "type": "string",
+      "description": "On-chain vault contract address"
+    },
+    "chain_id": {
+      "type": "integer",
+      "description": "Blockchain chain ID",
+      "default": 968
+    },
+    "agent_address": {
+      "type": "string",
+      "description": "SimpleAccount address of the agent"
+    },
+    "display_name": {
+      "type": "string",
+      "description": "Human-readable vault name",
+      "default": "My Vault"
+    },
+    "token_address": {
+      "type": "string",
+      "description": "ERC20 token address held in vault"
+    },
+    "token_symbol": {
+      "type": "string",
+      "description": "Token symbol (e.g. mUSD)",
+      "default": "mUSD"
+    },
+    "token_decimals": {
+      "type": "integer",
+      "description": "Token decimals",
+      "default": 6
+    },
+    "vault_balance": {
+      "type": "string",
+      "description": "Current vault balance in base units"
+    },
+    "total_spent": {
+      "type": "string",
+      "description": "Total amount spent from this vault"
+    },
+    "paymaster_address": {
+      "type": "string",
+      "description": "Paymaster contract address"
+    },
+    "paymaster_deposit": {
+      "type": "string",
+      "description": "Paymaster's EntryPoint deposit in wei"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["active", "inactive"],
+      "default": "active"
+    },
+    "last_synced_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When on-chain state was last synced"
+    }
+  },
+  "required": ["contract_address", "chain_id", "agent_address"],
+  "rls": {
+    "create": true,
+    "read": {"created_by": "{{user.email}}"},
+    "update": {"created_by": "{{user.email}}"},
+    "delete": false
+  }
+}
