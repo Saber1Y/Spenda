@@ -12,6 +12,8 @@ import {SponsorPanel} from "@/components/dashboard/SponsorPanel";
 import {ActionHistoryPanel} from "@/components/dashboard/ActionHistoryPanel";
 import {OwnerControls} from "@/components/dashboard/OwnerControls";
 import {RunAgentPanel} from "@/components/dashboard/RunAgentPanel";
+import {SyncPanel} from "@/components/dashboard/SyncPanel";
+import {TxHistoryPanel} from "@/components/dashboard/TxHistoryPanel";
 
 export default function DashboardPage() {
   const agent = DEMO.agent;
@@ -32,7 +34,7 @@ export default function DashboardPage() {
         <AgentHeader agent={agent} state={state} loading={loading} onRefresh={refetchAll} />
 
         {/* DOM order = mobile priority (run + history first, controls last).
-            Desktop uses explicit col/row placement — main column left, side column right. */}
+            Desktop uses explicit col/row placement - main column left, side column right. */}
         <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
           <RunAgentPanel refetch={refetchAll} className="lg:col-span-1 lg:col-start-3 lg:row-start-1" />
           <ActionHistoryPanel
@@ -73,6 +75,8 @@ export default function DashboardPage() {
             refetch={refetchAll}
             className="lg:col-span-1 lg:col-start-3 lg:row-start-3"
           />
+          <SyncPanel className="lg:col-span-1 lg:col-start-3 lg:row-start-4" />
+          <TxHistoryPanel className="lg:col-span-2 lg:col-start-1 lg:row-start-4" />
         </div>
       </div>
     </main>
