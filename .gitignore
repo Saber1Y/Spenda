@@ -1,0 +1,36 @@
+# Secrets & private material — NEVER commit
+# internal/ holds the PRD, keys.json (private keys), and phase findings.
+# cache/ holds forge-script "sensitive values" (deployer key).
+internal/
+cache/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.keystore
+
+# Foundry
+out/
+broadcast/
+.gas-snapshot
+
+# Node / Next / TypeScript
+node_modules/
+.next/
+dist/
+build/
+.turbo/
+*.tsbuildinfo
+next-env.d.ts
+
+# Coverage
+coverage/
+lcov.info
+
+# OS / editors
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/
