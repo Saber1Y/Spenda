@@ -8,7 +8,7 @@ import {Button} from "@/components/ui/Button";
 import {Field, TextInput} from "@/components/ui/Input";
 import {Chip} from "@/components/ui/Chip";
 import {Dot, ArrowUpRight} from "@/components/ui/Icons";
-import {DEMO, MUSD_DECIMALS} from "@/lib/contracts";
+import {CONTRACTS, DEMO, MUSD_DECIMALS} from "@/lib/contracts";
 import {deployFullStack, type DeployResult} from "@/lib/deployVault";
 import {saveActiveVault} from "@/lib/activeVault";
 import {useRouter} from "next/navigation";
@@ -21,7 +21,7 @@ export default function DeployPage() {
   const {data: walletClient} = useWalletClient();
   const publicClient = usePublicClient();
 
-  const [vendor, setVendor] = useState(DEMO.vendor);
+  const [vendor, setVendor] = useState<string>(DEMO.vendor);
   const [maxPerTx, setMaxPerTx] = useState("5");
   const [dailyCap, setDailyCap] = useState("20");
   const [expiryDays, setExpiryDays] = useState("30");
@@ -50,7 +50,7 @@ export default function DeployPage() {
         agentAddress: res.agentAddress,
         agentOwnerEOA: address,
         vendorAddress: vendor as Address,
-        mockUSDAddress: DEMO.mockUSDAddress ?? "0x981a7E272F309193D846dc585b64E4a2f172aD21",
+        mockUSDAddress: CONTRACTS.mockUSD,
         deployBlock: 0n,
       });
       setResult(res);

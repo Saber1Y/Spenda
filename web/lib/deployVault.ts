@@ -51,6 +51,8 @@ export async function deployFullStack(
     abi: vaultAbi,
     bytecode: BOTSpendVaultBytecode,
     args: [account],
+    account,
+    chain: null,
   });
   const vaultReceipt = await publicClient.waitForTransactionReceipt({hash: vaultHash});
   if (!vaultReceipt.contractAddress) throw new Error("Vault deployment failed");
@@ -62,6 +64,8 @@ export async function deployFullStack(
     abi: paymasterAbi,
     bytecode: BOTSpendPaymasterBytecode,
     args: [CONTRACTS.entryPoint, account, vaultAddress],
+    account,
+    chain: null,
   });
   const paymasterReceipt = await publicClient.waitForTransactionReceipt({hash: paymasterHash});
   if (!paymasterReceipt.contractAddress) throw new Error("Paymaster deployment failed");
@@ -82,6 +86,8 @@ export async function deployFullStack(
     abi: factoryAbi,
     functionName: "createAccount",
     args: [account, 0n],
+    account,
+    chain: null,
   });
   await publicClient.waitForTransactionReceipt({hash: createHash});
   txHashes.push(createHash);
@@ -94,6 +100,8 @@ export async function deployFullStack(
     abi: vaultAbi,
     functionName: "setAgentPolicy",
     args: [agentAddress, config.maxPerTx, config.dailyCap, expiry, true],
+    account,
+    chain: null,
   });
   await publicClient.waitForTransactionReceipt({hash: policyHash});
   txHashes.push(policyHash);
@@ -104,6 +112,8 @@ export async function deployFullStack(
     abi: vaultAbi,
     functionName: "setAllowedTarget",
     args: [agentAddress, config.vendorAddress, true],
+    account,
+    chain: null,
   });
   await publicClient.waitForTransactionReceipt({hash: targetHash});
   txHashes.push(targetHash);
@@ -114,6 +124,8 @@ export async function deployFullStack(
     abi: vaultAbi,
     functionName: "setAllowedToken",
     args: [agentAddress, CONTRACTS.mockUSD, true],
+    account,
+    chain: null,
   });
   await publicClient.waitForTransactionReceipt({hash: tokenHash});
   txHashes.push(tokenHash);
@@ -125,6 +137,8 @@ export async function deployFullStack(
       abi: mockUSDAbi,
       functionName: "mint",
       args: [vaultAddress, config.fundAmount],
+      account,
+      chain: null,
     });
     await publicClient.waitForTransactionReceipt({hash: fundHash});
     txHashes.push(fundHash);
@@ -134,6 +148,8 @@ export async function deployFullStack(
   const depositHash = await wallet.sendTransaction({
     to: paymasterAddress,
     value: paymasterDeposit,
+    account,
+    chain: null,
   });
   await publicClient.waitForTransactionReceipt({hash: depositHash});
   txHashes.push(depositHash);
