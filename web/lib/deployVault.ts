@@ -1,4 +1,4 @@
-import {type Address, type WalletClient, type PublicClient, parseUnits} from "viem";
+import {type Address, type WalletClient, type PublicClient, parseUnits, encodeDeployData} from "viem";
 import {CONTRACTS} from "./contracts";
 import {BOTSpendVaultBytecode, BOTSpendPaymasterBytecode} from "./artifacts";
 
@@ -48,13 +48,22 @@ export async function deployFullStack(
   const txHashes: string[] = [];
   const paymasterDeposit = parseUnits("0.05", 18);
 
+  // Helper: estimate gas with 30% buffer for MetaMask
+  const estimateDeploy = async (abi: readonly unknown[], bytecode: `0x${string}`, args: unknown[]) => {
+    const data = encodeDeployData({abi: abi as any, bytecode, args: args as any});
+    const gas = await publicClient.estimateGas({account, data});
+    return gas * 130n / 100n;
+  };
+
   // 1. Deploy BOTSpendVault(owner = caller)
+  const vaultGas = await estimateDeploy(vaultAbi, BOTSpendVaultBytecode, [account]);
   const vaultHash = await wallet.deployContract({
     abi: vaultAbi,
     bytecode: BOTSpendVaultBytecode,
     args: [account],
     account,
     chain: null,
+    gas: vaultGas,
   });
   const vaultReceipt = await publicClient.waitForTransactionReceipt({hash: vaultHash});
   if (!vaultReceipt.contractAddress) throw new Error("Vault deployment failed");
@@ -62,12 +71,14 @@ export async function deployFullStack(
   txHashes.push(vaultHash);
 
   // 2. Deploy BOTSpendPaymaster(entryPoint, verifyingSigner, vault)
+  const paymasterGas = await estimateDeploy(paymasterAbi, BOTSpendPaymasterBytecode, [CONTRACTS.entryPoint, account, vaultAddress]);
   const paymasterHash = await wallet.deployContract({
     abi: paymasterAbi,
     bytecode: BOTSpendPaymasterBytecode,
     args: [CONTRACTS.entryPoint, account, vaultAddress],
     account,
     chain: null,
+    gas: paymasterGas,
   });
   const paymasterReceipt = await publicClient.waitForTransactionReceipt({hash: paymasterHash});
   if (!paymasterReceipt.contractAddress) throw new Error("Paymaster deployment failed");
