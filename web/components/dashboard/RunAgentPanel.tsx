@@ -93,6 +93,8 @@ export function RunAgentPanel({refetch, className = ""}: {refetch: () => void; c
           agent: active.agent,
           vault: active.vault,
           paymaster: active.paymaster,
+          mockUSD: active.mockUSD,
+          vendor: active.vendor,
         }),
       });
       const data = await res.json();

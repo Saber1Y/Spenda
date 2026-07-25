@@ -1,6 +1,6 @@
 import {decodeEventLog, getAbiItem, type Hex} from "viem";
 import {publicClient} from "./chain";
-import {vaultAbi, CONTRACTS, PROOF_TX} from "./contracts";
+import {vaultAbi, PROOF_TX, getActiveContracts} from "./contracts";
 
 export interface ProofResult {
   kind: "approved" | "blocked";
@@ -30,7 +30,7 @@ export async function fetchProof(kind: "approved" | "blocked"): Promise<ProofRes
     })) as {logs?: {address: string; data: Hex; topics: [Hex, ...Hex[]]}[]} | null;
     if (!receipt?.logs) return SNAPSHOT[kind];
     for (const log of receipt.logs) {
-      if (log.address.toLowerCase() !== CONTRACTS.vault.toLowerCase()) continue;
+      if (log.address.toLowerCase() !== getActiveContracts().vault.toLowerCase()) continue;
       try {
         const dec = decodeEventLog({abi: [evt], data: log.data, topics: log.topics});
         if (dec.eventName === evt.name) {

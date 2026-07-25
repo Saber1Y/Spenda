@@ -1,6 +1,6 @@
 import {getAbiItem, type Address, type Hex} from "viem";
 import {publicClient} from "./chain";
-import {CONTRACTS, DEMO, vaultAbi, erc20Abi, entryPointAbi} from "./contracts";
+import {CONTRACTS, DEMO, vaultAbi, erc20Abi, entryPointAbi, getActiveContracts} from "./contracts";
 
 export interface Policy {
   maxPerTx: bigint;
@@ -27,7 +27,10 @@ export interface VaultState {
 
 /** One batched load of every read the dashboard shows, keyed on the agent ADDRESS. */
 export async function readVaultState(agent: Address): Promise<VaultState> {
-  const vault = CONTRACTS.vault;
+  const active = getActiveContracts();
+  const vault = active.vault;
+  const vendor = active.vendor;
+  const agentOwnerEOA = active.agentOwnerEOA;
   const [
     vaultBalance,
     policy,
@@ -44,12 +47,12 @@ export async function readVaultState(agent: Address): Promise<VaultState> {
     publicClient.readContract({address: CONTRACTS.mockUSD, abi: erc20Abi, functionName: "balanceOf", args: [vault]}),
     publicClient.readContract({address: vault, abi: vaultAbi, functionName: "getPolicy", args: [agent]}),
     publicClient.readContract({address: vault, abi: vaultAbi, functionName: "remainingDailyCap", args: [agent]}),
-    publicClient.readContract({address: vault, abi: vaultAbi, functionName: "allowedTarget", args: [agent, DEMO.vendor]}),
+    publicClient.readContract({address: vault, abi: vaultAbi, functionName: "allowedTarget", args: [agent, vendor]}),
     publicClient.readContract({address: vault, abi: vaultAbi, functionName: "allowedToken", args: [agent, CONTRACTS.mockUSD]}),
-    publicClient.readContract({address: CONTRACTS.entryPoint, abi: entryPointAbi, functionName: "balanceOf", args: [CONTRACTS.paymaster]}),
+    publicClient.readContract({address: CONTRACTS.entryPoint, abi: entryPointAbi, functionName: "balanceOf", args: [active.paymaster]}),
     publicClient.getBalance({address: agent}),
     publicClient.readContract({address: CONTRACTS.entryPoint, abi: entryPointAbi, functionName: "balanceOf", args: [agent]}),
-    publicClient.getBalance({address: DEMO.agentOwnerEOA}),
+    publicClient.getBalance({address: agentOwnerEOA}),
     publicClient.getCode({address: agent}),
     publicClient.readContract({address: vault, abi: vaultAbi, functionName: "owner", args: []}),
   ]);
@@ -88,9 +91,10 @@ const blockedEvent = getAbiItem({abi: vaultAbi, name: "AgentActionBlocked"});
 
 /** Read approved/blocked actions for one agent over [fromBlock, toBlock]. */
 export async function readActions(agent: Address, fromBlock: bigint, toBlock: bigint): Promise<AgentAction[]> {
+  const active = getActiveContracts();
   const [approved, blocked] = await Promise.all([
-    publicClient.getLogs({address: CONTRACTS.vault, event: approvedEvent, args: {agent}, fromBlock, toBlock}),
-    publicClient.getLogs({address: CONTRACTS.vault, event: blockedEvent, args: {agent}, fromBlock, toBlock}),
+    publicClient.getLogs({address: active.vault, event: approvedEvent, args: {agent}, fromBlock, toBlock}),
+    publicClient.getLogs({address: active.vault, event: blockedEvent, args: {agent}, fromBlock, toBlock}),
   ]);
 
   const out: AgentAction[] = [];

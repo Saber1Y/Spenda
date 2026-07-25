@@ -10,7 +10,7 @@ import {Button} from "@/components/ui/Button";
 import {Field, TextInput, Toggle} from "@/components/ui/Input";
 import {Check, Hand} from "@/components/ui/Icons";
 import {formatMusd, formatExpiry, truncateAddress} from "@/lib/format";
-import {CONTRACTS, DEMO, MUSD_DECIMALS, vaultAbi} from "@/lib/contracts";
+import {CONTRACTS, MUSD_DECIMALS, vaultAbi, getActiveContracts} from "@/lib/contracts";
 import {useOwnerWrite} from "@/lib/useOwnerWrite";
 import type {VaultState} from "@/lib/reads";
 
@@ -39,6 +39,7 @@ export function PolicyPanel({
     setEditing(false);
   });
 
+  const active = getActiveContracts();
   const noPolicy = state ? state.policy.lastResetTime === 0n : false;
   const editAction =
     isOwner && state && !editing ? (
@@ -64,7 +65,7 @@ export function PolicyPanel({
           </button>
         </PanelNote>
       ) : editing && state ? (
-        <PolicyForm agent={agent} state={state} write={write} onCancel={() => setEditing(false)} />
+        <PolicyForm agent={agent} state={state} write={write} vaultAddress={active.vault} onCancel={() => setEditing(false)} />
       ) : noPolicy ? (
         <PanelNote>No policy set for this agent yet.</PanelNote>
       ) : state ? (
@@ -92,7 +93,7 @@ export function PolicyPanel({
             <div className="mt-2 flex flex-wrap gap-2">
               <Chip tone={state.targetAllowed ? "lavender" : "outline"}>
                 {state.targetAllowed ? <Check width={12} height={12} /> : null}
-                target {truncateAddress(DEMO.vendor)}
+                target {truncateAddress(active.vendor)}
               </Chip>
               <Chip tone={state.tokenAllowed ? "lavender" : "outline"}>
                 {state.tokenAllowed ? <Check width={12} height={12} /> : null}
@@ -110,11 +111,13 @@ function PolicyForm({
   agent,
   state,
   write,
+  vaultAddress,
   onCancel,
 }: {
   agent: Address;
   state: VaultState;
   write: ReturnType<typeof useOwnerWrite>;
+  vaultAddress: Address;
   onCancel: () => void;
 }) {
   const [maxPerTx, setMaxPerTx] = useState(formatMusd(state.policy.maxPerTx));
@@ -133,7 +136,7 @@ function PolicyForm({
     const d = Number(days);
     const expiry = !d || d <= 0 ? 0n : BigInt(Math.floor(Date.now() / 1000) + d * 86400);
     write.run({
-      address: CONTRACTS.vault,
+      address: vaultAddress,
       abi: vaultAbi,
       functionName: "setAgentPolicy",
       args: [agent, mpt, dc, expiry, active],

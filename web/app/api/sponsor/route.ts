@@ -181,6 +181,8 @@ export async function POST(req: NextRequest) {
   const agentAddr = (typeof b.agent === "string" && b.agent.startsWith("0x") ? b.agent : DEMO.agent) as Address;
   const vaultAddr = (typeof b.vault === "string" && b.vault.startsWith("0x") ? b.vault : CONTRACTS.vault) as Address;
   const paymasterAddr = (typeof b.paymaster === "string" && b.paymaster.startsWith("0x") ? b.paymaster : CONTRACTS.paymaster) as Address;
+  const mockUSDAddr = (typeof b.mockUSD === "string" && b.mockUSD.startsWith("0x") ? b.mockUSD : CONTRACTS.mockUSD) as Address;
+  const vendorAddr = (typeof b.vendor === "string" && b.vendor.startsWith("0x") ? b.vendor : DEMO.vendor) as Address;
 
   try {
     const verifyingSigner = privateKeyToAccount(signerKey!);
@@ -191,7 +193,7 @@ export async function POST(req: NextRequest) {
 
     // fresh actionId so the CAP/DAILY-CAP is the reason, never dedup
     const actionId = keccak256(toBytes(`${agent}:${nonce}:${Date.now()}:${Math.random()}`));
-    const inner = encodeFunctionData({abi: executeSpendAbi, functionName: "executeSpend", args: [CONTRACTS.mockUSD, DEMO.vendor, amount, "0x", actionId]});
+    const inner = encodeFunctionData({abi: executeSpendAbi, functionName: "executeSpend", args: [mockUSDAddr, vendorAddr, amount, "0x", actionId]});
     const callData = encodeFunctionData({abi: executeAbi, functionName: "execute", args: [vaultAddr, 0n, inner]});
 
     const {maxFee, maxPrio} = await gasPrice();

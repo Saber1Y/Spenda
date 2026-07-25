@@ -1,5 +1,5 @@
 import {createPublicClient, http, decodeEventLog, getAbiItem, rpcSchema, type Hex} from "viem";
-import {vaultAbi, CONTRACTS} from "./contracts";
+import {vaultAbi, getActiveContracts} from "./contracts";
 import type {BundlerRpcSchema, UserOpReceiptRaw} from "./bundlerSchema";
 
 const BUNDLER = "https://bundler.bohr.life/rpc";
@@ -34,7 +34,7 @@ export function resolveOutcome(receipt: UserOpReceiptRaw): RunOutcome | null {
   const txHash = receipt.receipt?.transactionHash;
   const logs = [...(receipt.logs ?? []), ...(receipt.receipt?.logs ?? [])];
   for (const log of logs) {
-    if (log.address?.toLowerCase() !== CONTRACTS.vault.toLowerCase()) continue;
+    if (log.address?.toLowerCase() !== getActiveContracts().vault.toLowerCase()) continue;
     for (const evt of [approvedEvent, blockedEvent]) {
       try {
         const dec = decodeEventLog({abi: [evt], data: log.data, topics: log.topics});
