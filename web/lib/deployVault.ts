@@ -157,9 +157,12 @@ export async function deployFullStack(
     txHashes.push(fundHash);
   }
 
-  // 9. Fund paymaster deposit (native BOT)
-  const depositHash = await wallet.sendTransaction({
-    to: paymasterAddress,
+  // 9. Fund paymaster deposit via deposit() → entryPoint.depositTo()
+  const depositHash = await wallet.writeContract({
+    address: paymasterAddress,
+    abi: paymasterAbi,
+    functionName: "deposit",
+    args: [],
     value: paymasterDeposit,
     account,
     chain: null,
