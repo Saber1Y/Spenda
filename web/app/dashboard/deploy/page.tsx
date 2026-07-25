@@ -32,7 +32,11 @@ export default function DeployPage() {
   const [step, setStep] = useState("");
 
   const deploy = async () => {
-    if (!walletClient || !publicClient || !address) return;
+    if (!walletClient || !publicClient || !address) {
+      setError("Wallet client not ready. Make sure MetaMask is connected and on BOT Chain 968.");
+      setPhase("error");
+      return;
+    }
     setPhase("deploying");
     setError(null);
     try {
@@ -144,9 +148,9 @@ export default function DeployPage() {
                 variant="primary"
                 size="md"
                 onClick={deploy}
-                disabled={phase === "deploying"}
+                disabled={phase === "deploying" || !walletClient}
               >
-                {phase === "deploying" ? "Deploying..." : "Deploy vault"}
+                {!walletClient ? "Connecting wallet..." : phase === "deploying" ? "Deploying..." : "Deploy vault"}
               </Button>
             </div>
           )}
