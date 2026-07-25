@@ -27,6 +27,56 @@ export const PROOF_TX = {
 
 export const MUSD_DECIMALS = 6;
 
+/**
+ * Returns the full set of contract addresses, using the active vault from
+ * localStorage if one has been deployed, otherwise falling back to the demo.
+ */
+export function getActiveContracts() {
+  if (typeof window === "undefined") {
+    return {
+      entryPoint: CONTRACTS.entryPoint as Address,
+      mockUSD: CONTRACTS.mockUSD as Address,
+      vault: CONTRACTS.vault as Address,
+      factory: CONTRACTS.factory as Address,
+      paymaster: CONTRACTS.paymaster as Address,
+      agent: DEMO.agent as Address,
+      agentOwnerEOA: DEMO.agentOwnerEOA as Address,
+      vendor: DEMO.vendor as Address,
+      deployBlock: DEPLOY_BLOCK,
+    };
+  }
+  try {
+    const raw = localStorage.getItem("spenda:activeVault");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed.vaultAddress && parsed.paymasterAddress && parsed.agentAddress) {
+        return {
+          entryPoint: CONTRACTS.entryPoint as Address,
+          mockUSD: parsed.mockUSDAddress ?? CONTRACTS.mockUSD,
+          vault: parsed.vaultAddress as Address,
+          factory: CONTRACTS.factory as Address,
+          paymaster: parsed.paymasterAddress as Address,
+          agent: parsed.agentAddress as Address,
+          agentOwnerEOA: parsed.agentOwnerEOA as Address,
+          vendor: parsed.vendorAddress as Address,
+          deployBlock: BigInt(parsed.deployBlock ?? DEPLOY_BLOCK),
+        };
+      }
+    }
+  } catch {}
+  return {
+    entryPoint: CONTRACTS.entryPoint as Address,
+    mockUSD: CONTRACTS.mockUSD as Address,
+    vault: CONTRACTS.vault as Address,
+    factory: CONTRACTS.factory as Address,
+    paymaster: CONTRACTS.paymaster as Address,
+    agent: DEMO.agent as Address,
+    agentOwnerEOA: DEMO.agentOwnerEOA as Address,
+    vendor: DEMO.vendor as Address,
+    deployBlock: DEPLOY_BLOCK,
+  };
+}
+
 export const vaultAbi = parseAbi([
   // reads
   "function getPolicy(address agent) view returns ((uint128 maxPerTx,uint128 dailyCap,uint128 spentToday,uint64 lastResetTime,uint64 expiry,bool active))",
