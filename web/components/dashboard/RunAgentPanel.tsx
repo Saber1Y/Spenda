@@ -9,6 +9,7 @@ import {Chip, TxChip} from "@/components/ui/Chip";
 import {Dot} from "@/components/ui/Icons";
 import {formatMusd, truncateHash} from "@/lib/format";
 import {explorerTx} from "@/lib/chain";
+import {getActiveContracts} from "@/lib/contracts";
 import {pollUserOpReceipt, resolveOutcome, type RunOutcome} from "@/lib/bundler";
 
 type Phase = "idle" | "running" | "polling" | "resolved" | "error";
@@ -83,10 +84,16 @@ export function RunAgentPanel({refetch, className = ""}: {refetch: () => void; c
   const doRun = async (amount: bigint) => {
     setRun({phase: "running", amount});
     try {
+      const active = getActiveContracts();
       const res = await fetch("/api/sponsor", {
         method: "POST",
         headers: {"content-type": "application/json"},
-        body: JSON.stringify({amountBaseUnits: amount.toString()}),
+        body: JSON.stringify({
+          amountBaseUnits: amount.toString(),
+          agent: active.agent,
+          vault: active.vault,
+          paymaster: active.paymaster,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
