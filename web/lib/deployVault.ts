@@ -3,12 +3,14 @@ import {CONTRACTS} from "./contracts";
 import {BOTSpendVaultBytecode, BOTSpendPaymasterBytecode} from "./artifacts";
 
 const vaultAbi = [
+  {type: "constructor", inputs: [{name: "owner", type: "address"}], stateMutability: "nonpayable"},
   {type: "function", name: "setAgentPolicy", inputs: [{name: "agent", type: "address"}, {name: "maxPerTx", type: "uint128"}, {name: "dailyCap", type: "uint128"}, {name: "expiry", type: "uint64"}, {name: "active", type: "bool"}], outputs: [], stateMutability: "nonpayable"},
   {type: "function", name: "setAllowedTarget", inputs: [{name: "agent", type: "address"}, {name: "target", type: "address"}, {name: "allowed", type: "bool"}], outputs: [], stateMutability: "nonpayable"},
   {type: "function", name: "setAllowedToken", inputs: [{name: "agent", type: "address"}, {name: "token", type: "address"}, {name: "allowed", type: "bool"}], outputs: [], stateMutability: "nonpayable"},
 ] as const;
 
 const paymasterAbi = [
+  {type: "constructor", inputs: [{name: "entryPoint", type: "address"}, {name: "verifyingSigner", type: "address"}, {name: "vault", type: "address"}], stateMutability: "nonpayable"},
   {type: "function", name: "deposit", inputs: [], outputs: [], stateMutability: "payable"},
 ] as const;
 
