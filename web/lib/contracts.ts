@@ -114,3 +114,5 @@ export const erc20Abi = parseAbi([
 ]);
 
 export const entryPointAbi = parseAbi(["function balanceOf(address) view returns (uint256)"]);
+
+export const paymasterAbi = parseAbi(["function deposit() payable"]);

@@ -11,6 +11,7 @@ export type WriteArgs = {
   abi: Abi;
   functionName: string;
   args: readonly unknown[];
+  value?: bigint;
 };
 
 export type WriteStatus = {pending: boolean; error?: string; okKey?: number; lastHash?: `0x${string}`};
@@ -26,7 +27,7 @@ export function useOwnerWrite(refetch: () => void) {
   const run = async (args: WriteArgs) => {
     setStatus({pending: true});
     try {
-      const hash = await writeContractAsync({...args, chainId: botChain.id});
+      const hash = await writeContractAsync({...args, chainId: botChain.id, ...(args.value ? {value: args.value} : {})});
       const result = await waitForReceiptRaw(hash);
       if (result === "reverted") {
         setStatus({pending: false, error: "Transaction reverted on-chain"});

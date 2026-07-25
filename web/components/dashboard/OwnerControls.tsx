@@ -1,12 +1,12 @@
 "use client";
 
 import {useEffect, useRef, useState} from "react";
-import {isAddress, parseUnits, type Address} from "viem";
+import {isAddress, parseEther, parseUnits, type Address} from "viem";
 import {Panel, PanelNote} from "./Panel";
 import {Button} from "@/components/ui/Button";
 import {Field, TextInput} from "@/components/ui/Input";
 import {ConnectionHint} from "./OwnerConnectButton";
-import {getActiveContracts, MUSD_DECIMALS, erc20Abi, vaultAbi} from "@/lib/contracts";
+import {getActiveContracts, MUSD_DECIMALS, erc20Abi, vaultAbi, paymasterAbi} from "@/lib/contracts";
 import {useOwnerWrite} from "@/lib/useOwnerWrite";
 import {recordAuditLog} from "@/lib/audit";
 
@@ -31,6 +31,7 @@ export function OwnerControls({
   const write = useOwnerWrite(refetch);
   const active = getActiveContracts();
   const [fundAmt, setFundAmt] = useState("100");
+  const [paymasterFundAmt, setPaymasterFundAmt] = useState("0.05");
   const [target, setTarget] = useState<string>(active.vendor);
   const [token, setToken] = useState<string>(active.mockUSD);
   const [confirmRevoke, setConfirmRevoke] = useState(false);
@@ -54,6 +55,15 @@ export function OwnerControls({
     }
     pendingAudit.current = {action: "VAULT_FUNDED", metadata: {amount: fundAmt, token: "mUSD"}};
     write.run({address: active.mockUSD, abi: erc20Abi, functionName: "mint", args: [active.vault, amt]});
+  };
+  const fundPaymaster = () => {
+    let amt: bigint;
+    try {
+      amt = parseEther(paymasterFundAmt || "0");
+    } catch {
+      return;
+    }
+    write.run({address: active.paymaster, abi: paymasterAbi, functionName: "deposit", args: [], value: amt});
   };
   const allowTarget = (allowed: boolean) => {
     if (!isAddress(target)) return;
@@ -93,6 +103,20 @@ export function OwnerControls({
             <div className="flex gap-2">
               <TextInput inputMode="decimal" value={fundAmt} onChange={(e) => setFundAmt(e.target.value)} className="flex-1" />
               <Button variant="primary" size="sm" onClick={fund} disabled={disabled}>
+                Fund
+              </Button>
+            </div>
+          </Field>
+        </div>
+
+        <div className="border-t border-ash" />
+
+        {/* Fund paymaster */}
+        <div className="flex flex-col gap-3">
+          <Field label="Fund paymaster (BOT)" hint="native BOT → EntryPoint deposit for gasless ops">
+            <div className="flex gap-2">
+              <TextInput inputMode="decimal" value={paymasterFundAmt} onChange={(e) => setPaymasterFundAmt(e.target.value)} className="flex-1" />
+              <Button variant="primary" size="sm" onClick={fundPaymaster} disabled={disabled}>
                 Fund
               </Button>
             </div>
