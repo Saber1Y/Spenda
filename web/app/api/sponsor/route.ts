@@ -106,6 +106,7 @@ function unpackedForEstimate(o: {
   maxFee: bigint;
   maxPrio: bigint;
   sig: Hex;
+  paymaster: Address;
 }): UnpackedUserOp {
   return {
     sender: o.sender,
@@ -116,7 +117,7 @@ function unpackedForEstimate(o: {
     preVerificationGas: toHex(FLOOR_PVG),
     maxFeePerGas: toHex(o.maxFee),
     maxPriorityFeePerGas: toHex(o.maxPrio),
-    paymaster: CONTRACTS.paymaster,
+    paymaster: o.paymaster,
     paymasterVerificationGasLimit: toHex(PM_VGL),
     paymasterPostOpGasLimit: toHex(PM_PGL),
     paymasterData: dummyPaymasterData(o.sig),
@@ -162,7 +163,8 @@ export async function POST(req: NextRequest) {
   } catch {
     return NextResponse.json({error: "invalid_json", message: "Body must be JSON."}, {status: 400});
   }
-  const amount = parseAmount((body as {amountBaseUnits?: unknown})?.amountBaseUnits);
+  const b = body as Record<string, unknown>;
+  const amount = parseAmount(b.amountBaseUnits);
   if (amount === null) {
     return NextResponse.json({error: "invalid_amount", message: "amountBaseUnits must be a positive integer."}, {status: 400});
   }
@@ -175,21 +177,26 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({error: "rate_limited", message: "Too many runs — slow down.", retryAfter: rl.retryAfter}, {status: 429});
   }
 
+  // Support dynamic vault/paymaster/agent from request body (deployed vault flow)
+  const agentAddr = (typeof b.agent === "string" && b.agent.startsWith("0x") ? b.agent : DEMO.agent) as Address;
+  const vaultAddr = (typeof b.vault === "string" && b.vault.startsWith("0x") ? b.vault : CONTRACTS.vault) as Address;
+  const paymasterAddr = (typeof b.paymaster === "string" && b.paymaster.startsWith("0x") ? b.paymaster : CONTRACTS.paymaster) as Address;
+
   try {
     const verifyingSigner = privateKeyToAccount(signerKey!);
     const agentOwner = privateKeyToAccount(ownerKey!);
-    const agent = DEMO.agent as Address;
+    const agent = agentAddr;
 
     const nonce = (await rpc.readContract({address: EP, abi: getNonceAbi, functionName: "getNonce", args: [agent, 0n]})) as bigint;
 
     // fresh actionId so the CAP/DAILY-CAP is the reason, never dedup
     const actionId = keccak256(toBytes(`${agent}:${nonce}:${Date.now()}:${Math.random()}`));
     const inner = encodeFunctionData({abi: executeSpendAbi, functionName: "executeSpend", args: [CONTRACTS.mockUSD, DEMO.vendor, amount, "0x", actionId]});
-    const callData = encodeFunctionData({abi: executeAbi, functionName: "execute", args: [CONTRACTS.vault, 0n, inner]});
+    const callData = encodeFunctionData({abi: executeAbi, functionName: "execute", args: [vaultAddr, 0n, inner]});
 
     const {maxFee, maxPrio} = await gasPrice();
     const dummySig = await privateKeyToAccount(`0x${"01".repeat(32)}` as Hex).sign({hash: `0x${"00".repeat(32)}` as Hex});
-    const gas = await estimateFloored(unpackedForEstimate({sender: agent, nonce, callData, maxFee, maxPrio, sig: dummySig}));
+    const gas = await estimateFloored(unpackedForEstimate({sender: agent, nonce, callData, maxFee, maxPrio, sig: dummySig, paymaster: paymasterAddr}));
 
     // ---- FROZEN op — no field touched after this ----
     const op: UserOpFields = {
@@ -206,7 +213,7 @@ export async function POST(req: NextRequest) {
       paymasterPostOpGasLimit: PM_PGL,
     };
 
-    const cfg: SignerConfig = {chainId: CHAIN_ID, paymaster: CONTRACTS.paymaster, vault: CONTRACTS.vault, registeredSenders: [agent]};
+    const cfg: SignerConfig = {chainId: CHAIN_ID, paymaster: paymasterAddr, vault: vaultAddr, registeredSenders: [agent]};
     const res = await sponsor(op, cfg, verifyingSigner, await chainNow());
     if (!res.sponsored) {
       return NextResponse.json({error: "not_sponsorable", message: res.reason}, {status: 400});
@@ -225,7 +232,7 @@ export async function POST(req: NextRequest) {
       preVerificationGas: toHex(op.preVerificationGas),
       maxFeePerGas: toHex(op.maxFeePerGas),
       maxPriorityFeePerGas: toHex(op.maxPriorityFeePerGas),
-      paymaster: CONTRACTS.paymaster,
+      paymaster: paymasterAddr,
       paymasterVerificationGasLimit: toHex(PM_VGL),
       paymasterPostOpGasLimit: toHex(PM_PGL),
       paymasterData: slice(res.paymasterAndData, 52),
