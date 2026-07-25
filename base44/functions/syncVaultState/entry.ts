@@ -65,8 +65,9 @@ const GET_CODE_METHOD = "eth_getCode";
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const vaultAddr = CONTRACTS.vault;
-    const agent = DEMO.agent;
+    const body = await req.json().catch(() => ({}));
+    const vaultAddr = body.vaultAddress || CONTRACTS.vault;
+    const agent = body.agentAddress || DEMO.agent;
 
     const [
       vaultBalanceResult,
