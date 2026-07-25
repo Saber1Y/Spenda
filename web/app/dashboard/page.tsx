@@ -1,7 +1,7 @@
 "use client";
 
 import {useAccount} from "wagmi";
-import {DEMO} from "@/lib/contracts";
+import {getActiveContracts} from "@/lib/contracts";
 import {useVaultState, useActionHistory} from "@/lib/hooks";
 import {isSameAddress} from "@/lib/format";
 import {DashboardNav} from "@/components/dashboard/DashboardNav";
@@ -19,7 +19,8 @@ import {OverviewPanel} from "@/components/dashboard/OverviewPanel";
 import {useVaultEntities} from "@/lib/base44-hooks";
 
 export default function DashboardPage() {
-  const agent = DEMO.agent;
+  const active = getActiveContracts();
+  const agent = active.agent;
   const {data: state, loading, error, refetch} = useVaultState(agent);
   const history = useActionHistory(agent);
   const {address, isConnected} = useAccount();
