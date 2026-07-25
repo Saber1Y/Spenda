@@ -2,6 +2,7 @@
 
 import {useState} from "react";
 import {getBase44Client} from "@/lib/base44";
+import {getActiveContracts} from "@/lib/contracts";
 import {Panel, PanelNote} from "./Panel";
 import {Button} from "@/components/ui/Button";
 import {Chip} from "@/components/ui/Chip";
@@ -20,7 +21,8 @@ export function SyncPanel({className = ""}: {className?: string}) {
     setVaultResult(null);
     try {
       const client = getBase44Client();
-      const raw = await client.functions.invoke("syncVaultState", {body: {}});
+      const active = getActiveContracts();
+      const raw = await client.functions.invoke("syncVaultState", {body: {vaultAddress: active.vault, agentAddress: active.agent}});
       const res = raw?.data ?? raw;
       setLastVaultSync(new Date().toLocaleTimeString());
       setVaultResult(res?.ok ? "Vault state synced" : res?.error ?? "Sync completed");
@@ -37,7 +39,8 @@ export function SyncPanel({className = ""}: {className?: string}) {
     setTxResult(null);
     try {
       const client = getBase44Client();
-      const raw = await client.functions.invoke("syncTransactions", {body: {}});
+      const active = getActiveContracts();
+      const raw = await client.functions.invoke("syncTransactions", {body: {vaultAddress: active.vault, agentAddress: active.agent}});
       const res = raw?.data ?? raw;
       setLastTxSync(new Date().toLocaleTimeString());
       const msg = res?.ok
