@@ -6,7 +6,7 @@ import {Panel, PanelNote} from "./Panel";
 import {Button} from "@/components/ui/Button";
 import {Field, TextInput} from "@/components/ui/Input";
 import {ConnectionHint} from "./OwnerConnectButton";
-import {CONTRACTS, DEMO, MUSD_DECIMALS, erc20Abi, vaultAbi} from "@/lib/contracts";
+import {getActiveContracts, MUSD_DECIMALS, erc20Abi, vaultAbi} from "@/lib/contracts";
 import {useOwnerWrite} from "@/lib/useOwnerWrite";
 import {recordAuditLog} from "@/lib/audit";
 
@@ -29,9 +29,10 @@ export function OwnerControls({
   className?: string;
 }) {
   const write = useOwnerWrite(refetch);
+  const active = getActiveContracts();
   const [fundAmt, setFundAmt] = useState("100");
-  const [target, setTarget] = useState<string>(DEMO.vendor);
-  const [token, setToken] = useState<string>(CONTRACTS.mockUSD);
+  const [target, setTarget] = useState<string>(active.vendor);
+  const [token, setToken] = useState<string>(active.mockUSD);
   const [confirmRevoke, setConfirmRevoke] = useState(false);
   const disabled = !isOwner || write.pending;
   const pendingAudit = useRef<PendingAudit | null>(null);
@@ -52,7 +53,7 @@ export function OwnerControls({
       return;
     }
     pendingAudit.current = {action: "VAULT_FUNDED", metadata: {amount: fundAmt, token: "mUSD"}};
-    write.run({address: CONTRACTS.mockUSD, abi: erc20Abi, functionName: "mint", args: [CONTRACTS.vault, amt]});
+    write.run({address: active.mockUSD, abi: erc20Abi, functionName: "mint", args: [active.vault, amt]});
   };
   const allowTarget = (allowed: boolean) => {
     if (!isAddress(target)) return;
@@ -60,7 +61,7 @@ export function OwnerControls({
       action: "ALLOWLIST_UPDATED",
       metadata: {kind: "target", address: target, allowed, agent_address: agent},
     };
-    write.run({address: CONTRACTS.vault, abi: vaultAbi, functionName: "setAllowedTarget", args: [agent, target as Address, allowed]});
+    write.run({address: active.vault, abi: vaultAbi, functionName: "setAllowedTarget", args: [agent, target as Address, allowed]});
   };
   const allowToken = (allowed: boolean) => {
     if (!isAddress(token)) return;
@@ -68,11 +69,11 @@ export function OwnerControls({
       action: "ALLOWLIST_UPDATED",
       metadata: {kind: "token", address: token, allowed, agent_address: agent},
     };
-    write.run({address: CONTRACTS.vault, abi: vaultAbi, functionName: "setAllowedToken", args: [agent, token as Address, allowed]});
+    write.run({address: active.vault, abi: vaultAbi, functionName: "setAllowedToken", args: [agent, token as Address, allowed]});
   };
   const revoke = () => {
     pendingAudit.current = {action: "AGENT_REVOKED", metadata: {agent_address: agent}};
-    write.run({address: CONTRACTS.vault, abi: vaultAbi, functionName: "revokeAgent", args: [agent]});
+    write.run({address: active.vault, abi: vaultAbi, functionName: "revokeAgent", args: [agent]});
   };
 
   return (
