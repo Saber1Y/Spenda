@@ -71,6 +71,7 @@ function RunResult({run}: {run: RunState}) {
 export function RunAgentPanel({refetch, className = ""}: {refetch: () => void; className?: string}) {
   const [configured, setConfigured] = useState<boolean | null>(null);
   const [run, setRun] = useState<RunState>({phase: "idle"});
+  const [customAmount, setCustomAmount] = useState("");
 
   useEffect(() => {
     fetch("/api/sponsor")
@@ -118,6 +119,14 @@ export function RunAgentPanel({refetch, className = ""}: {refetch: () => void; c
     }
   };
 
+  const doCustomRun = () => {
+    const val = parseFloat(customAmount);
+    if (isNaN(val) || val <= 0) return;
+    const baseUnits = BigInt(Math.round(val * 1_000_000));
+    doRun(baseUnits);
+    setCustomAmount("");
+  };
+
   if (configured === false) {
     return (
       <Panel title="Run the agent" subtitle="live gasless spend" className={className}>
@@ -132,13 +141,33 @@ export function RunAgentPanel({refetch, className = ""}: {refetch: () => void; c
         Submit a real sponsored UserOp. The agent holds nothing; the paymaster pays and the vault decides. The
         outcome is whatever the fence returns — not scripted.
       </p>
-      <div className="flex flex-col gap-3 sm:flex-row">
+      <div className="flex flex-wrap items-center gap-3">
         <Button variant="primary" size="sm" onClick={() => doRun(4_000_000n)} disabled={busy || configured === null}>
           Spend 4 mUSD
         </Button>
         <Button variant="secondary" size="sm" onClick={() => doRun(6_000_000n)} disabled={busy || configured === null}>
           Spend 6 mUSD
         </Button>
+        <div className="flex items-center gap-2">
+          <input
+            type="number"
+            inputMode="decimal"
+            placeholder="Custom mUSD"
+            value={customAmount}
+            onChange={(e) => setCustomAmount(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") doCustomRun(); }}
+            className="w-[140px] rounded-[12px] border border-ash bg-paper-white px-3.5 py-2 text-[15px] text-obsidian tabular-nums outline-none transition placeholder:text-fog/60 focus:border-periwinkle"
+            disabled={busy || configured === null}
+          />
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={doCustomRun}
+            disabled={busy || configured === null || !customAmount || parseFloat(customAmount) <= 0}
+          >
+            Spend
+          </Button>
+        </div>
       </div>
       {run.phase !== "idle" ? <RunResult run={run} /> : null}
     </Panel>
