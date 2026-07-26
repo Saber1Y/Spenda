@@ -22,7 +22,7 @@ export function SyncPanel({className = ""}: {className?: string}) {
     try {
       const client = getBase44Client();
       const active = getActiveContracts();
-      const raw = await client.functions.invoke("syncVaultState", {body: {vaultAddress: active.vault, agentAddress: active.agent}});
+      const raw = await client.functions.invoke("syncVaultState", {vaultAddress: active.vault, agentAddress: active.agent});
       const res = raw?.data ?? raw;
       setLastVaultSync(new Date().toLocaleTimeString());
       setVaultResult(res?.ok ? "Vault state synced" : res?.error ?? "Sync completed");
@@ -40,7 +40,7 @@ export function SyncPanel({className = ""}: {className?: string}) {
     try {
       const client = getBase44Client();
       const active = getActiveContracts();
-      const raw = await client.functions.invoke("syncTransactions", {body: {vaultAddress: active.vault, agentAddress: active.agent}});
+      const raw = await client.functions.invoke("syncTransactions", {vaultAddress: active.vault, agentAddress: active.agent});
       const res = raw?.data ?? raw;
       setLastTxSync(new Date().toLocaleTimeString());
       const msg = res?.ok

@@ -38,10 +38,12 @@ async function queryEntities(
 ): Promise<Record<string, any>[]> {
   const client = getBase44Client();
   const raw = await client.functions.invoke("queryEntities", {
-    body: {entity, filter: filter ?? {}, sort: sort ?? "-created_at", limit: limit ?? 100},
+    entity, filter: filter ?? {}, sort: sort ?? "-created_at", limit: limit ?? 100,
   });
+  console.log(`[queryEntities] entity=${entity} raw:`, JSON.stringify(raw).slice(0, 500));
   const res = raw?.data ?? raw;
   if (!res?.ok) throw new Error(res?.error ?? "queryEntities failed");
+  console.log(`[queryEntities] entity=${entity} result:`, res.data?.length ?? 0, "items");
   return res.data ?? [];
 }
 
