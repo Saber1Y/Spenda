@@ -3,7 +3,7 @@
 import {useState, useMemo} from "react";
 import {getActiveContracts} from "@/lib/contracts";
 import {useVaultState, useActionHistory} from "@/lib/hooks";
-import {useTransactionEntities} from "@/lib/base44-hooks";
+import {useVaultEntities, useTransactionEntities} from "@/lib/base44-hooks";
 import {formatMusd, truncateAddress, truncateHash} from "@/lib/format";
 import {explorerTx} from "@/lib/chain";
 import {StatTile} from "@/components/ui/StatTile";
@@ -25,7 +25,9 @@ export default function SpendingPage() {
   const agent = active.agent;
   const {data: state, loading: stateLoading, refetch: refetchState} = useVaultState(agent);
   const history = useActionHistory(agent);
-  const {data: transactions, loading: txLoading, refetch: refetchTx} = useTransactionEntities();
+  const {data: vaultEntities} = useVaultEntities();
+  const vaultId = vaultEntities?.[0]?.id;
+  const {data: transactions, loading: txLoading, refetch: refetchTx} = useTransactionEntities(vaultId);
   const [filter, setFilter] = useState<Filter>("all");
 
   const allRows = useMemo(() => {

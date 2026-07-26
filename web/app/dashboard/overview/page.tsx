@@ -195,8 +195,8 @@ export default function OverviewPage() {
   const history = useActionHistory(agent);
   const { address, isConnected } = useAccount();
   const { data: vaultEntities } = useVaultEntities();
-  const { data: transactions, refetch: refetchTx } = useTransactionEntities();
   const vaultId = vaultEntities?.[0]?.id;
+  const { data: transactions, refetch: refetchTx } = useTransactionEntities(vaultId);
 
   const isOwner =
     isConnected && !!state && isSameAddress(address, state.vaultOwner);
