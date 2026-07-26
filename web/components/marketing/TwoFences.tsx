@@ -19,7 +19,7 @@ function FenceCard({
   return (
     <Card tone="paper" pad="lg" className="flex flex-col gap-5">
       <div className="flex items-center justify-between">
-        <span className="flex h-11 w-11 items-center justify-center rounded-pill bg-ghost-lavender text-aubergine">
+        <span className="flex h-11 w-11 items-center justify-center rounded-pill bg-base-orange-light text-base-orange">
           {icon}
         </span>
         <span className="text-caption uppercase tracking-[0.08em] text-fog">{index}</span>

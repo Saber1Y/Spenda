@@ -5,7 +5,7 @@ export function Wordmark({className = "", tone = "dark"}: {className?: string; t
       className={`font-heading select-none ${tone === "light" ? "text-paper-white" : "text-aubergine"} ${className}`}
       style={{fontWeight: 350, letterSpacing: "-0.03em"}}
     >
-      BOT<span className="text-periwinkle">Spend</span>
+      BOT<span className="text-base-orange">Spend</span>
     </span>
   );
 }

@@ -6,7 +6,7 @@ type Pad = "sm" | "md" | "lg";
 const toneClass: Record<Tone, string> = {
   paper: "bg-paper-white border-ash text-obsidian",
   bone: "bg-bone border-ash text-obsidian",
-  lavender: "bg-ghost-lavender border-ghost-lavender text-aubergine",
+  lavender: "bg-base-orange-light border-base-orange/20 text-obsidian",
   dark: "bg-aubergine border-white/12 text-paper-white",
 };
 

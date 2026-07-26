@@ -7,10 +7,10 @@ type ChipTone = "neutral" | "lavender" | "mint" | "blush" | "outline";
 
 const toneClass: Record<ChipTone, string> = {
   neutral: "bg-ash text-obsidian",
-  lavender: "bg-ghost-lavender text-aubergine",
+  lavender: "bg-base-orange-light text-base-orange border border-base-orange/20",
   mint: "bg-mint-signal text-paper-white",
-  blush: "bg-blush-mist/60 text-aubergine border border-blush-mist",
-  outline: "bg-transparent text-aubergine border border-ash",
+  blush: "bg-blush-mist/60 text-obsidian border border-blush-mist",
+  outline: "bg-transparent text-obsidian border border-ash",
 };
 
 export function Chip({

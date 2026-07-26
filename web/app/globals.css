@@ -1,27 +1,27 @@
 @import "tailwindcss";
 
 /* ============================================================================
-   Phantom design system — every value from design.md. Single flip-points:
-   --font-weight-heading (350 per decision #1) and --color-state-blocked.
+   Base44 brand design system.
+   Primary: #fe6a00 (orange)  Secondary: #1e1e24 (dark)
    ========================================================================== */
 @theme {
-  /* Colors */
-  --color-aubergine: #3c315b;
-  --color-ghost-lavender: #e2dffe;
-  --color-periwinkle: #ab9ff2;
-  --color-cornflower-pop: #4a87f2;
+  /* Colors — Base44 brand */
+  --color-aubergine: #1e1e24;
+  --color-base-orange: #fe6a00;
+  --color-base-orange-light: #fff3e6;
+  --color-periwinkle: #fe6a00;
   --color-buttercream: #ffffc4;
   --color-blush-mist: #ffdadc;
   --color-mint-signal: #2ec08b;
-  --color-paper-white: #fdfcfe;
-  --color-obsidian: #1c1c1c;
+  --color-paper-white: #ffffff;
+  --color-obsidian: #1e1e24;
   --color-fog: #86848d;
   --color-ash: #e9e8ea;
   --color-bone: #f4f2f4;
 
-  /* Semantic state tokens (the fence outcomes; NO red — blocked is the fence working) */
-  --color-state-approved: #2ec08b; /* Mint — solid badge */
-  --color-state-blocked: #ffdadc; /* Blush Mist — used as low-opacity TINT + "held" label */
+  /* Semantic state tokens */
+  --color-state-approved: #2ec08b;
+  --color-state-blocked: #ffdadc;
 
   /* Typography */
   --font-phantom: var(--font-inter), "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -61,8 +61,8 @@
   --radius-link: 32px;
   --radius-pill: 100px;
 
-  /* Shadow — the single 4px violet glow (flat system otherwise) */
-  --shadow-glow: rgb(226, 223, 254) 0px 0px 4px 0px;
+  /* Shadow — orange glow */
+  --shadow-glow: rgb(254, 106, 0) 0px 0px 4px 0px;
 
   /* Layout */
   --breakpoint-sm: 640px;
@@ -101,7 +101,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Focus ring within the palette */
 :focus-visible {
-  outline: 2px solid var(--color-periwinkle);
+  outline: 2px solid var(--color-base-orange);
   outline-offset: 2px;
   border-radius: 4px;
 }

@@ -5,12 +5,11 @@ type Variant = "primary" | "secondary" | "accent" | "onDark" | "ghost";
 type Size = "sm" | "md";
 
 const variantClass: Record<Variant, string> = {
-  // Ghost Lavender fill + violet halo — the system's main action
-  primary: "bg-ghost-lavender text-aubergine shadow-glow hover:brightness-[0.98]",
+  primary: "bg-base-orange text-paper-white shadow-glow hover:brightness-[0.95]",
   secondary: "bg-ash text-obsidian hover:brightness-[0.97]",
-  accent: "bg-periwinkle text-aubergine hover:brightness-[0.97]",
-  onDark: "bg-paper-white text-aubergine hover:brightness-[0.97]",
-  ghost: "bg-transparent text-aubergine hover:bg-ash/60",
+  accent: "bg-base-orange text-paper-white hover:brightness-[0.95]",
+  onDark: "bg-paper-white text-obsidian hover:brightness-[0.97]",
+  ghost: "bg-transparent text-obsidian hover:bg-ash/60",
 };
 
 const sizeClass: Record<Size, string> = {
