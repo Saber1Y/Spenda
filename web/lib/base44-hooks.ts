@@ -55,14 +55,15 @@ export function useVaultEntities() {
   );
 }
 
-/** Find the vault entity matching the active contract address. */
+/** Find the vault entity matching the active contract address, or fall back to first vault. */
 export function useActiveVaultEntity(): Record<string, any> | undefined {
   const {data: vaultEntities} = useVaultEntities();
-  const active = getActiveContracts();
   if (!vaultEntities || vaultEntities.length === 0) return undefined;
-  return vaultEntities.find(
+  const active = getActiveContracts();
+  const match = vaultEntities.find(
     (v) => v.contract_address?.toLowerCase() === active.vault.toLowerCase(),
   );
+  return match ?? vaultEntities[0];
 }
 
 /** Fetch all Agent entities from Base44. */
@@ -73,24 +74,22 @@ export function useAgentEntities() {
   );
 }
 
-/** Fetch transactions for a specific vault from Base44. */
+/** Fetch transactions for a specific vault from Base44. If no vaultId, fetches all. */
 export function useTransactionEntities(vaultId?: string) {
   return useEntityList(
-    () =>
-      vaultId
-        ? queryEntities("Transaction", {vault_id: vaultId}, "-block_number", 100)
-        : Promise.resolve([]),
+    () => vaultId
+      ? queryEntities("Transaction", {vault_id: vaultId}, "-block_number", 100)
+      : queryEntities("Transaction", {}, "-block_number", 100),
     [vaultId],
   );
 }
 
-/** Fetch audit logs for a specific vault from Base44. */
+/** Fetch audit logs for a specific vault from Base44. If no vaultId, fetches all. */
 export function useAuditLogEntities(vaultId?: string) {
   return useEntityList(
-    () =>
-      vaultId
-        ? queryEntities("AuditLog", {vault_id: vaultId}, "-timestamp", 100)
-        : Promise.resolve([]),
+    () => vaultId
+      ? queryEntities("AuditLog", {vault_id: vaultId}, "-timestamp", 100)
+      : queryEntities("AuditLog", {}, "-timestamp", 100),
     [vaultId],
   );
 }
