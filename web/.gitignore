@@ -5,6 +5,7 @@ node_modules/
 out/
 # env
 .env
+.env.local
 .env.*
 !.env.example
 # misc
