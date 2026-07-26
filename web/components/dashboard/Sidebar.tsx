@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useAccount } from "wagmi";
 import { Dot } from "@/components/ui/Icons";
 import { truncateAddress } from "@/lib/format";
+import { getBase44Client } from "@/lib/base44";
 import Image from "next/image";
 
 const NAV_ITEMS = [
@@ -132,9 +133,14 @@ function NavIcon({ icon }: { icon: string }) {
   }
 }
 
-export function Sidebar() {
+interface SidebarProps {
+  user?: {email?: string; name?: string} | null;
+}
+
+export function Sidebar({user}: SidebarProps) {
   const pathname = usePathname();
   const { address, isConnected } = useAccount();
+  const client = getBase44Client();
 
   return (
     <aside className="fixed inset-y-0 left-0 z-40 flex w-[240px] flex-col border-r border-ash/15 bg-obsidian">
@@ -196,19 +202,35 @@ export function Sidebar() {
           Home
         </Link>
 
-        {isConnected && address ? (
+        {user ? (
           <div className="flex items-center gap-2.5 rounded-[12px] bg-white/5 px-3 py-2.5">
+            <Dot width={9} height={9} className="text-mint-signal" />
+            <span className="text-[13px] truncate text-paper-white">
+              {user.name ?? user.email ?? "Signed in"}
+            </span>
+          </div>
+        ) : (
+          <button
+            onClick={() => client.auth.loginWithProvider("google", "/dashboard")}
+            className="flex w-full items-center gap-2.5 rounded-[12px] bg-base-orange/15 px-3 py-2.5 text-[13px] text-base-orange transition hover:bg-base-orange/25"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+              <polyline points="10,17 15,12 10,7" />
+              <line x1="15" y1="12" x2="3" y2="12" />
+            </svg>
+            Sign in with Google
+          </button>
+        )}
+
+        {isConnected && address ? (
+          <div className="mt-2.5 flex items-center gap-2.5 rounded-[12px] bg-white/5 px-3 py-2.5">
             <Dot width={9} height={9} className="text-mint-signal" />
             <span className="text-[13px] tabular-nums text-paper-white">
               {truncateAddress(address)}
             </span>
           </div>
-        ) : (
-          <div className="flex items-center gap-2.5 rounded-[12px] bg-white/5 px-3 py-2.5">
-            <Dot width={9} height={9} className="text-fog" />
-            <span className="text-[13px] text-fog">Not connected</span>
-          </div>
-        )}
+        ) : null}
       </div>
     </aside>
   );
