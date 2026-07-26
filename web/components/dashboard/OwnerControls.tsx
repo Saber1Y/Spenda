@@ -161,7 +161,7 @@ export function OwnerControls({
         <div className="flex items-center justify-between gap-3">
           <div>
             <div className="text-body-sm text-aubergine">Revoke agent</div>
-            <div className="text-caption text-fog">hard off-switch — sets the policy inactive</div>
+            <div className="text-caption text-fog">hard off-switch, sets the policy inactive</div>
           </div>
           {confirmRevoke ? (
             <div className="flex gap-2">

@@ -68,7 +68,7 @@ export function ActionHistoryPanel({
           </button>
         </PanelNote>
       ) : empty ? (
-        <PanelNote>No actions yet — this agent hasn&rsquo;t spent.</PanelNote>
+        <PanelNote>No actions yet. This agent hasn&rsquo;t spent.</PanelNote>
       ) : (
         <>
           <div className="flex flex-col divide-y divide-ash">
@@ -77,7 +77,7 @@ export function ActionHistoryPanel({
             ))}
           </div>
           {error && actions.length > 0 ? (
-            <p className="text-caption text-fog">Showing last loaded — the latest refresh didn&rsquo;t reach the node.</p>
+            <p className="text-caption text-fog">Showing last loaded. The latest refresh didn&rsquo;t reach the node.</p>
           ) : null}
         </>
       )}

@@ -5,7 +5,7 @@ import {Providers} from "@/components/Providers";
 
 const inter = Inter({subsets: ["latin"], variable: "--font-inter", display: "swap"});
 
-const title = "Spenda — a wallet your AI agent can't drain";
+const title = "Spenda - a wallet your AI agent can't drain";
 const description =
   "Policy-checked, gasless spend vaults for autonomous agents on BOT Chain. The agent holds nothing; a sponsor policy fences it to the vault at the gas layer; the vault enforces caps, allowlists and receipts on-chain.";
 

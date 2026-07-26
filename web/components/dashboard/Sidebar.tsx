@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useAccount } from "wagmi";
 import { Dot } from "@/components/ui/Icons";
 import { truncateAddress } from "@/lib/format";
+import Image from "next/image";
 
 const NAV_ITEMS = [
   { href: "/dashboard/overview", label: "Overview", icon: "grid" },
@@ -139,7 +140,7 @@ export function Sidebar() {
     <aside className="fixed inset-y-0 left-0 z-40 flex w-[240px] flex-col border-r border-ash/15 bg-obsidian">
       {/* Brand */}
       <div className="flex h-16 items-center gap-2.5 border-b border-ash/15 px-5">
-        <img
+        <Image
           src="/spenda-logo.png"
           alt="Spenda"
           height={50}

@@ -22,8 +22,8 @@ interface RunState {
 }
 
 function errorMessage(data: {error?: string; message?: string; retryAfter?: number}): string {
-  if (data.error === "rate_limited") return `Slow down${data.retryAfter ? ` — try again in ${data.retryAfter}s` : ""}.`;
-  if (data.error === "sponsor_deposit_empty") return "The paymaster deposit is empty — top it up to keep running gasless.";
+  if (data.error === "rate_limited") return `Slow down${data.retryAfter ? `, try again in ${data.retryAfter}s` : ""}.`;
+  if (data.error === "sponsor_deposit_empty") return "The paymaster deposit is empty. Top it up to keep running gasless.";
   if (data.error === "not_configured") return "Live run isn’t configured on this server.";
   return data.message ?? "Submission failed.";
 }
@@ -45,7 +45,7 @@ function RunResult({run}: {run: RunState}) {
       <PanelNote tone="error">
         {run.error}
         {run.userOpHash ? (
-          <span className="mt-1 block text-caption">userOp {truncateHash(run.userOpHash)} — check history if it landed.</span>
+          <span className="mt-1 block text-caption">userOp {truncateHash(run.userOpHash)}, check history if it landed.</span>
         ) : null}
       </PanelNote>
     );
@@ -130,16 +130,16 @@ export function RunAgentPanel({refetch, className = ""}: {refetch: () => void; c
   if (configured === false) {
     return (
       <Panel title="Run the agent" subtitle="live gasless spend" className={className}>
-        <PanelNote>The live run isn&rsquo;t configured on this server — the read-only dashboard above is fully live.</PanelNote>
+        <PanelNote>The live run isn&rsquo;t configured on this server. The read-only dashboard above is fully live.</PanelNote>
       </Panel>
     );
   }
 
   return (
-    <Panel title="Run the agent" subtitle="live gasless spend — the fence decides" className={className}>
+    <Panel title="Run the agent" subtitle="live gasless spend, the fence decides" className={className}>
       <p className="text-body-sm text-fog">
         Submit a real sponsored UserOp. The agent holds nothing; the paymaster pays and the vault decides. The
-        outcome is whatever the fence returns — not scripted.
+        outcome is whatever the fence returns, not scripted.
       </p>
       <div className="flex flex-wrap items-center gap-3">
         <Button variant="primary" size="sm" onClick={() => doRun(4_000_000n)} disabled={busy || configured === null}>

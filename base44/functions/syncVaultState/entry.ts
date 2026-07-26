@@ -167,7 +167,7 @@ Deno.serve(async (req) => {
         address: agent,
         owner_eoa: DEMO.agentOwnerEOA,
         display_name: "ProcurementBot",
-        description: "Demo agent for Spenda hackathon",
+        description: "Demo agent for Spenda",
         status: active ? "active" : "revoked",
         is_deployed: isDeployed,
       });

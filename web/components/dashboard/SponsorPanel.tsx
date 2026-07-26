@@ -57,7 +57,7 @@ export function SponsorPanel({
                 {formatBot(state.paymasterDeposit)} <span className="text-body text-fog">BOT</span>
               </>
             }
-            sub={state.paymasterDeposit > 0n ? "funds every gasless UserOp" : "unfunded — gasless paused"}
+            sub={state.paymasterDeposit > 0n ? "funds every gasless UserOp" : "unfunded, gasless paused"}
           />
           <div className="rounded-card border border-ash bg-bone p-4">
             <span className="text-caption uppercase tracking-[0.06em] text-fog">Agent holds nothing</span>
