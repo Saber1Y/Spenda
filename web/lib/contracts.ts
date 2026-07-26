@@ -4,7 +4,7 @@ import {parseAbi, type Address} from "viem";
 export const CONTRACTS = {
   entryPoint: "0x0000000071727De22E5E9d8BAf0edAc6f37da032",
   mockUSD: "0x981a7E272F309193D846dc585b64E4a2f172aD21",
-  vault: "0xf23147dfe0e9e38d0e8d20d780f7ca9301ea182b",
+  vault: "0xf23147dF55089ea6bA87bf24bB4EEe6f7CEa182B",
   factory: "0xC7e8a13d62752Eb58b21391f2BA302B1043D13b1",
   paymaster: "0xde609e52d9164c227d4f174d6260289bc3e62ec2",
 } as const satisfies Record<string, Address>;
