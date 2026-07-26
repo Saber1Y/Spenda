@@ -11,14 +11,14 @@ const links = [
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-ash bg-paper-white px-6">
+    <footer className="border-t border-white/10 bg-obsidian px-6">
       <div className="mx-auto flex max-w-[1200px] flex-col gap-8 py-12 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <Logo height={30} />
 
-          <p className="mt-3 max-w-[40ch] text-caption text-fog">
-            Policy-checked, gasless spend vaults for autonomous agents. BOT Chain Builder Challenge · AI Agent
-            track · testnet 968.
+          <p className="mt-3 max-w-[40ch] text-caption text-paper-white/50">
+            Policy-checked, gasless spend vaults for autonomous agents. BOT Chain Builder Challenge - AI Agent
+            track - testnet 968.
           </p>
         </div>
         <nav className="flex flex-wrap gap-x-6 gap-y-2">
@@ -28,10 +28,10 @@ export function SiteFooter() {
               href={l.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-body-sm text-aubergine transition hover:text-periwinkle"
+              className="inline-flex items-center gap-1 text-body-sm text-paper-white/70 transition hover:text-base-orange"
             >
               {l.label}
-              <ArrowUpRight width={13} height={13} className="text-fog" />
+              <ArrowUpRight width={13} height={13} className="text-paper-white/40" />
             </a>
           ))}
         </nav>

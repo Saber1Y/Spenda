@@ -3,9 +3,9 @@ import type {ReactNode} from "react";
 type Tone = "paper" | "bone" | "dark";
 
 const toneCls: Record<Tone, string> = {
-  paper: "bg-paper-white text-obsidian",
+  paper: "bg-obsidian text-paper-white",
   bone: "bg-bone text-obsidian",
-  dark: "bg-aubergine text-paper-white",
+  dark: "bg-paper-white text-obsidian",
 };
 
 /** Full-bleed section with the 1200px content cap and the 64px+ section rhythm. */
@@ -30,7 +30,7 @@ export function Section({
 /** Section eyebrow — a small caption label above headings. */
 export function Eyebrow({children, onDark = false}: {children: ReactNode; onDark?: boolean}) {
   return (
-    <span className={`text-caption uppercase tracking-[0.08em] ${onDark ? "text-periwinkle" : "text-fog"}`}>
+    <span className={`text-caption uppercase tracking-[0.08em] ${onDark ? "text-fog" : "text-periwinkle"}`}>
       {children}
     </span>
   );
