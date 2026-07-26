@@ -10,5 +10,6 @@ export function getBase44Client(): Base44Client {
     appId: process.env.NEXT_PUBLIC_BASE44_APP_ID!,
     appBaseUrl: "https://base44.app",
   });
+  if (typeof window !== "undefined") (window as any).__b44 = client;
   return client;
 }

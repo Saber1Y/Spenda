@@ -1,4 +1,5 @@
 import {getBase44Client} from "@/lib/base44";
+import {getActiveContracts} from "@/lib/contracts";
 
 interface AuditEntry {
   vaultId?: string;
@@ -12,18 +13,30 @@ interface AuditEntry {
 export async function recordAuditLog(entry: AuditEntry) {
   try {
     const client = getBase44Client();
-    const vaultEntities = await client.asServiceRole.entities.Vault.list("-created_at", 1);
-    const vaultId = entry.vaultId ?? vaultEntities?.[0]?.id;
+    let vaultId = entry.vaultId;
+    if (!vaultId) {
+      const active = getActiveContracts();
+      const raw = await client.functions.invoke("queryEntities", {
+        body: {entity: "Vault", filter: {}, sort: "-created_at", limit: 50},
+      });
+      const res = raw?.data ?? raw;
+      const vaults = res?.data ?? [];
+      const match = vaults.find(
+        (v: Record<string, any>) => v.contract_address?.toLowerCase() === active.vault.toLowerCase(),
+      );
+      vaultId = match?.id;
+    }
     if (!vaultId) return;
 
-    await client.asServiceRole.entities.AuditLog.create({
-      vault_id: vaultId,
-      action: entry.action,
-      actor: entry.actor,
-      actor_type: entry.actorType,
-      metadata: entry.metadata ?? {},
-      tx_hash: entry.txHash ?? "",
-      timestamp: new Date().toISOString(),
+    await client.functions.invoke("recordAuditLogBE", {
+      body: {
+        vault_id: vaultId,
+        action: entry.action,
+        actor: entry.actor,
+        actor_type: entry.actorType,
+        metadata: entry.metadata ?? {},
+        tx_hash: entry.txHash ?? "",
+      },
     });
   } catch {
     // Audit log failures should not block the user flow

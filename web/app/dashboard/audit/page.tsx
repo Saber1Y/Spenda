@@ -1,8 +1,8 @@
 "use client";
 
-import {useMemo} from "react";
+import {useMemo, useEffect} from "react";
 import {getActiveContracts} from "@/lib/contracts";
-import {useVaultEntities, useAuditLogEntities} from "@/lib/base44-hooks";
+import {useActiveVaultEntity, useAuditLogEntities, useVaultEntities} from "@/lib/base44-hooks";
 import {truncateAddress, truncateHash} from "@/lib/format";
 import {explorerTx} from "@/lib/chain";
 import {Button} from "@/components/ui/Button";
@@ -77,11 +77,21 @@ function timelineFromLogs(logs: Record<string, any>[]): TimelineEntry[] {
 }
 
 export default function AuditPage() {
-  const {data: vaultEntities} = useVaultEntities();
-  const vaultId = vaultEntities?.[0]?.id;
+  const {data: vaultEntities, loading: vaultsLoading} = useVaultEntities();
+  const vaultEntity = useActiveVaultEntity();
+  const vaultId = vaultEntity?.id;
   const {data: logs, loading, error, refetch} = useAuditLogEntities(vaultId);
   const entries = logs ? timelineFromLogs(logs) : [];
   const empty = !loading && entries.length === 0;
+
+  useEffect(() => {
+    console.log("[Audit] vaultEntities:", vaultEntities);
+    console.log("[Audit] active vault address:", getActiveContracts().vault);
+    console.log("[Audit] matched vaultEntity:", vaultEntity);
+    console.log("[Audit] vaultId:", vaultId);
+    console.log("[Audit] logs:", logs);
+    console.log("[Audit] error:", error);
+  }, [vaultEntities, vaultEntity, vaultId, logs, error]);
 
   return (
     <div className="px-8 py-8 max-w-[1200px]">
@@ -118,6 +128,9 @@ export default function AuditPage() {
         ) : empty ? (
           <div className="py-12 text-center text-[15px] text-fog">
             No audit entries yet. Sync vault state to populate the timeline.
+            <div className="mt-2 text-[13px] text-fog/60">
+              vaultId: {vaultId ?? "none"} | vaults found: {vaultEntities?.length ?? 0}
+            </div>
           </div>
         ) : (
           <div className="overflow-x-auto">

@@ -2,6 +2,7 @@
 
 import {useCallback, useEffect, useState} from "react";
 import {getBase44Client} from "@/lib/base44";
+import {getActiveContracts} from "@/lib/contracts";
 
 interface EntityState<T> {
   data: T | undefined;
@@ -29,18 +30,43 @@ function useEntityList<T>(fetcher: () => Promise<T[]>, deps: unknown[]): EntityS
   return {...state, refetch};
 }
 
+async function queryEntities(
+  entity: string,
+  filter?: Record<string, unknown>,
+  sort?: string,
+  limit?: number,
+): Promise<Record<string, any>[]> {
+  const client = getBase44Client();
+  const raw = await client.functions.invoke("queryEntities", {
+    body: {entity, filter: filter ?? {}, sort: sort ?? "-created_at", limit: limit ?? 100},
+  });
+  const res = raw?.data ?? raw;
+  if (!res?.ok) throw new Error(res?.error ?? "queryEntities failed");
+  return res.data ?? [];
+}
+
 /** Fetch all Vault entities from Base44. */
 export function useVaultEntities() {
   return useEntityList(
-    () => getBase44Client().asServiceRole.entities.Vault.list("-created_at", 50) as Promise<Record<string, any>[]>,
+    () => queryEntities("Vault", {}, "-created_at", 50),
     [],
+  );
+}
+
+/** Find the vault entity matching the active contract address. */
+export function useActiveVaultEntity(): Record<string, any> | undefined {
+  const {data: vaultEntities} = useVaultEntities();
+  const active = getActiveContracts();
+  if (!vaultEntities || vaultEntities.length === 0) return undefined;
+  return vaultEntities.find(
+    (v) => v.contract_address?.toLowerCase() === active.vault.toLowerCase(),
   );
 }
 
 /** Fetch all Agent entities from Base44. */
 export function useAgentEntities() {
   return useEntityList(
-    () => getBase44Client().asServiceRole.entities.Agent.list("-created_at", 50) as Promise<Record<string, any>[]>,
+    () => queryEntities("Agent", {}, "-created_at", 50),
     [],
   );
 }
@@ -50,7 +76,7 @@ export function useTransactionEntities(vaultId?: string) {
   return useEntityList(
     () =>
       vaultId
-        ? (getBase44Client().asServiceRole.entities.Transaction.filter({vault_id: vaultId}, "-block_number", 100) as Promise<Record<string, any>[]>)
+        ? queryEntities("Transaction", {vault_id: vaultId}, "-block_number", 100)
         : Promise.resolve([]),
     [vaultId],
   );
@@ -61,7 +87,7 @@ export function useAuditLogEntities(vaultId?: string) {
   return useEntityList(
     () =>
       vaultId
-        ? (getBase44Client().asServiceRole.entities.AuditLog.filter({vault_id: vaultId}, "-timestamp", 100) as Promise<Record<string, any>[]>)
+        ? queryEntities("AuditLog", {vault_id: vaultId}, "-timestamp", 100)
         : Promise.resolve([]),
     [vaultId],
   );
@@ -72,7 +98,7 @@ export function usePolicyEntities(vaultId?: string) {
   return useEntityList(
     () =>
       vaultId
-        ? (getBase44Client().asServiceRole.entities.Policy.filter({vault_id: vaultId}, "-created_at", 10) as Promise<Record<string, any>[]>)
+        ? queryEntities("Policy", {vault_id: vaultId}, "-created_at", 10)
         : Promise.resolve([]),
     [vaultId],
   );

@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import { useAccount } from "wagmi";
 import { getActiveContracts } from "@/lib/contracts";
 import { useVaultState, useActionHistory } from "@/lib/hooks";
-import { useVaultEntities, useTransactionEntities } from "@/lib/base44-hooks";
+import { useVaultEntities, useTransactionEntities, useActiveVaultEntity } from "@/lib/base44-hooks";
 import {
   isSameAddress,
   formatMusd,
@@ -194,8 +194,8 @@ export default function OverviewPage() {
   const { data: state, loading, error, refetch } = useVaultState(agent);
   const history = useActionHistory(agent);
   const { address, isConnected } = useAccount();
-  const { data: vaultEntities } = useVaultEntities();
-  const vaultId = vaultEntities?.[0]?.id;
+  const vaultEntity = useActiveVaultEntity();
+  const vaultId = vaultEntity?.id;
   const { data: transactions, refetch: refetchTx } = useTransactionEntities(vaultId);
 
   const isOwner =
