@@ -1,0 +1,23 @@
+{
+  "name": "OperationsSnapshot",
+  "type": "object",
+  "title": "Operations Snapshot",
+  "description": "Chain-derived operational health snapshot",
+  "properties": {
+    "vault_id": {"type": "string"},
+    "chain_id": {"type": "integer"},
+    "block_number": {"type": "string"},
+    "block_timestamp": {"type": "string", "format": "date-time"},
+    "vault_balance": {"type": "string"},
+    "paymaster_deposit": {"type": "string"},
+    "agent_count": {"type": "integer"},
+    "custody_violations": {"type": "integer"},
+    "stuck_executions": {"type": "integer"},
+    "indexer_lag_blocks": {"type": "integer"},
+    "rpc_healthy": {"type": "boolean"},
+    "status": {"type": "string", "enum": ["healthy", "degraded", "critical"]},
+    "created_at_chain_time": {"type": "string", "format": "date-time"}
+  },
+  "required": ["vault_id", "chain_id", "block_number", "vault_balance", "paymaster_deposit", "agent_count", "status"],
+  "rls": {"create": true, "read": {"created_by": "{{user.email}}"}, "update": false, "delete": false}
+}
