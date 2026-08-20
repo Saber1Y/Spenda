@@ -18,6 +18,9 @@
     "status": {"type": "string", "enum": ["draft", "submitted", "validated", "blocked", "requires_approval", "approved", "rejected", "expired", "executing", "executed", "failed"]},
     "action_id": {"type": "string"},
     "validation_errors": {"type": "array", "items": {"type": "string"}}
+    ,"execution_started_at": {"type": "string", "format": "date-time"}
+    ,"execution_started_by": {"type": "string"}
+    ,"user_op_hash": {"type": "string"}
   },
   "required": ["vault_id", "agent_id", "intent_type", "description", "token", "amount", "expires_at", "status", "action_id"],
   "rls": {"create": true, "read": {"created_by": "{{user.email}}"}, "update": false, "delete": false}
