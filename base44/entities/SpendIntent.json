@@ -1,0 +1,24 @@
+{
+  "name": "SpendIntent",
+  "type": "object",
+  "title": "Spend Intent",
+  "description": "Validated economic request submitted by an agent",
+  "properties": {
+    "vault_id": {"type": "string"},
+    "agent_id": {"type": "string"},
+    "intent_type": {"type": "string", "enum": ["purchase", "transfer", "service", "agent_payment", "rwa_purchase"]},
+    "description": {"type": "string"},
+    "token": {"type": "string"},
+    "amount": {"type": "string"},
+    "recipient": {"type": "string"},
+    "category": {"type": "string"},
+    "merchant_id": {"type": "string"},
+    "metadata": {"type": "object"},
+    "expires_at": {"type": "string", "format": "date-time"},
+    "status": {"type": "string", "enum": ["draft", "submitted", "validated", "blocked", "requires_approval", "approved", "rejected", "expired", "executing", "executed", "failed"]},
+    "action_id": {"type": "string"},
+    "validation_errors": {"type": "array", "items": {"type": "string"}}
+  },
+  "required": ["vault_id", "agent_id", "intent_type", "description", "token", "amount", "expires_at", "status", "action_id"],
+  "rls": {"create": true, "read": {"created_by": "{{user.email}}"}, "update": false, "delete": false}
+}
