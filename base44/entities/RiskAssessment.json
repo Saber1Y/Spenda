@@ -1,0 +1,18 @@
+{
+  "name": "RiskAssessment",
+  "type": "object",
+  "title": "Risk Assessment",
+  "description": "Deterministic risk result for a spend intent",
+  "properties": {
+    "vault_id": {"type": "string"},
+    "intent_id": {"type": "string"},
+    "algorithm_version": {"type": "string"},
+    "score": {"type": "integer", "minimum": 0, "maximum": 100},
+    "level": {"type": "string", "enum": ["low", "medium", "high", "critical"]},
+    "factors": {"type": "array", "items": {"type": "object"}},
+    "recommendation": {"type": "string", "enum": ["automatic", "policy_dependent", "human_approval", "block"]},
+    "created_at_chain_time": {"type": "string"}
+  },
+  "required": ["vault_id", "intent_id", "algorithm_version", "score", "level", "recommendation"],
+  "rls": {"create": true, "read": {"created_by": "{{user.email}}"}, "update": false, "delete": false}
+}
