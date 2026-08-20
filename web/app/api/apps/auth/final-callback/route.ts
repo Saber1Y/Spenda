@@ -3,15 +3,8 @@ import {type NextRequest, NextResponse} from "next/server";
 export async function GET(req: NextRequest) {
   const {searchParams} = new URL(req.url);
   const token = searchParams.get("access_token");
-  const state = searchParams.get("state");
-
-  let redirectTo = "/dashboard";
-  if (state) {
-    try {
-      const parsed = JSON.parse(state);
-      if (parsed.from_url) redirectTo = parsed.from_url;
-    } catch {}
-  }
+  const next = searchParams.get("next");
+  const redirectTo = next && next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
 
   if (!token) {
     return NextResponse.redirect(new URL("/login", req.url));
