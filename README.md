@@ -175,9 +175,13 @@ Navigate to `/dashboard/deploy` to deploy a fresh vault stack:
 
 | Contract | Address |
 |---|---|
-| Vault | `0xf23147dfe0e9e38d0e8d20d780f7ca9301ea182b` |
-| Paymaster | `0xde609e52...e62ec2` |
-| Agent | `0xFdFa27C2089598...` |
+| Vault | `0xfB88d06289EaDD3aE23ef5C7bEF816baFfbf4000` |
+| Paymaster | `0x0b860c25Dc6b2Df451AA66cFCdc7D6c6D7802F66` |
+| Restricted Factory | `0x3951041d3e98A34EeDBefd9Db660d29F68B2387b` |
+| Restricted Agent | `0x2649495B56e8c06C6682549438ac9279599A3aD8` |
 | EntryPoint | `0x0000000071727De22E5E9d8BAf0edAc6f37da032` |
-| MockUSD | `0x981a7E272F309193D846dc585b64E4a2f172aD21` |
+| MockUSD | `0xAD6F06ebA7927FC0f114c296C221fCfd6C5eBf58` |
 | Owner EOA | `0x3F5b96A494061F7338Da529e3047809Ac6a7FB84` |
+
+Restricted testnet acceptance transaction:
+[`0xdbe5d62a...`](https://scan.bohr.life/tx/0xdbe5d62aec8ef6d9a8d8a9c7c26bf74b1d3e7ed3dbd47733543b0844c9cba50a).
