@@ -3,12 +3,12 @@ import {createClientFromRequest} from "npm:@base44/sdk";
 const RPC_URL = "https://rpc.bohr.life";
 
 const CONTRACTS = {
-  vault: "0xbE4e1109d0c8f9558E16A6C59388B6Fb210a2F88",
+  vault: "0xf23147df55089ea6ba87bf24bb4eee6f7cea182b",
   mockUSD: "0x981a7E272F309193D846dc585b64E4a2f172aD21",
 };
 
 const DEMO = {
-  agent: "0xCc19a6CD4c18Ea52a0E49DAb62c5C0F22800fa2B",
+  agent: "0xfdfa27c2ecc43e7b76a098409e95d125e0089598",
 };
 
 const MUSD_DECIMALS = 6;
