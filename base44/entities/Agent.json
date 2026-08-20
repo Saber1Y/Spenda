@@ -23,7 +23,7 @@
     },
     "status": {
       "type": "string",
-      "enum": ["active", "revoked"],
+      "enum": ["active", "paused", "revoked"],
       "default": "active"
     },
     "is_deployed": {
