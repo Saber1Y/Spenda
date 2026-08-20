@@ -12,6 +12,8 @@
       "type": "string",
       "description": "Reference to the Vault entity"
     },
+    "agent_id": {"type": "string", "description": "Reference to the Agent entity"},
+    "agent_address": {"type": "string", "description": "Agent whose mapping contains this entry"},
     "address": {
       "type": "string",
       "description": "Contract address on the allowlist"
@@ -35,7 +37,7 @@
       "default": "active"
     }
   },
-  "required": ["policy_id", "vault_id", "address", "kind"],
+  "required": ["vault_id", "agent_id", "agent_address", "address", "kind"],
   "rls": {
     "create": true,
     "read": {"created_by": "{{user.email}}"},
