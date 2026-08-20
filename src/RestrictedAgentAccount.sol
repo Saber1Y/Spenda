@@ -64,7 +64,10 @@ contract RestrictedAgentAccount is BaseAccount {
             return SIG_VALIDATION_FAILED;
         }
         bytes32 digest = MessageHashUtils.toEthSignedMessageHash(userOpHash);
-        return ECDSA.recover(digest, userOp.signature) == owner ? SIG_VALIDATION_SUCCESS : SIG_VALIDATION_FAILED;
+        (address recovered, ECDSA.RecoverError error,) = ECDSA.tryRecover(digest, userOp.signature);
+        return error == ECDSA.RecoverError.NoError && recovered == owner
+            ? SIG_VALIDATION_SUCCESS
+            : SIG_VALIDATION_FAILED;
     }
 
     /// @dev Never use account funds to prefund EntryPoint. Every operation must use the bound paymaster.

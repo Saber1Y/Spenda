@@ -90,6 +90,15 @@ contract RestrictedAgentAccountTest is Test {
         assertEq(account.validateUserOp(op, hash, 0), 0);
     }
 
+    function test_MalformedSignatureReturnsValidationFailure() public {
+        PackedUserOperation memory op;
+        op.sender = address(account);
+        op.paymasterAndData = abi.encodePacked(paymaster);
+        op.signature = hex"1234";
+        vm.prank(address(entryPoint));
+        assertEq(account.validateUserOp(op, keccak256("malformed"), 0), 1);
+    }
+
     function _sign(bytes32 hash) internal view returns (bytes memory) {
         bytes32 digest = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash));
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(ownerKey, digest);
