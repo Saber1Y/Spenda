@@ -58,7 +58,7 @@ export default function CommercePage() {
         expires_at: Math.floor(Date.now() / 1000) + 2 * 60 * 60,
       });
       const response = result?.data ?? result;
-      setStatus(response?.ok ? `${response.decision}: ${response.decision_reason}` : response?.error ?? "Intent failed");
+      setStatus(response?.ok ? `${response.decision}: ${response.decision_reason}. No funds move until an approved intent is executed.` : response?.error ?? "Intent failed");
     } catch (error) {
       setStatus(error instanceof Error ? error.message : String(error));
     }
