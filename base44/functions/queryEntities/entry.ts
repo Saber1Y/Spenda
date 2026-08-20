@@ -2,7 +2,7 @@ import {createClientFromRequest} from "npm:@base44/sdk";
 
 const VALID_ENTITIES = [
   "Vault", "Transaction", "AuditLog", "Policy", "Agent", "AllowlistEntry",
-  "AgentBudget", "SpendIntent", "RiskAssessment", "ApprovalRequest", "SpendingReceipt", "Merchant",
+  "AgentBudget", "SpendIntent", "RiskAssessment", "RiskPolicy", "ApprovalRequest", "SpendingReceipt", "Merchant",
 ];
 
 Deno.serve(async (req) => {
