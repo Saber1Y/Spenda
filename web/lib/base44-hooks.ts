@@ -72,6 +72,13 @@ export function useAgentEntities() {
   );
 }
 
+export function useVaultAgentEntities(vaultId?: string) {
+  return useEntityList(
+    () => vaultId ? queryEntities("Agent", {vault_id: vaultId}, "-created_at", 100) : Promise.resolve([]),
+    [vaultId],
+  );
+}
+
 /** Fetch transactions for a specific vault from Base44. If no vaultId, fetches all. */
 export function useTransactionEntities(vaultId?: string) {
   return useEntityList(
