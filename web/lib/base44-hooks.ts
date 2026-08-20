@@ -140,3 +140,17 @@ export function useAgentAllowlistEntities(vaultId?: string, agentAddress?: strin
     [vaultId, agentAddress],
   );
 }
+
+export function useOperationsSnapshots(vaultId?: string) {
+  return useEntityList(
+    () => vaultId ? queryEntities("OperationsSnapshot", {vault_id: vaultId}, "-created_at", 20) : Promise.resolve([]),
+    [vaultId],
+  );
+}
+
+export function useOperationsAlerts(vaultId?: string) {
+  return useEntityList(
+    () => vaultId ? queryEntities("OperationsAlert", {vault_id: vaultId, status: "open"}, "-created_at", 100) : Promise.resolve([]),
+    [vaultId],
+  );
+}
