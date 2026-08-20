@@ -10,10 +10,33 @@
   "paymaster": "0x0b860c25Dc6b2Df451AA66cFCdc7D6c6D7802F66",
   "restrictedAccountFactory": "0x3951041d3e98A34EeDBefd9Db660d29F68B2387b",
   "demoAgent": "0x2649495B56e8c06C6682549438ac9279599A3aD8",
+  "agents": [
+    {
+      "name": "Primary Procurement Agent",
+      "address": "0x2649495B56e8c06C6682549438ac9279599A3aD8",
+      "salt": 0,
+      "maxPerTransaction": "50000000",
+      "dailyCap": "250000000"
+    },
+    {
+      "name": "Research Agent",
+      "address": "0x02B56f3Bd6fb799AE3acF9053A69FA99EE3899b5",
+      "salt": 1,
+      "maxPerTransaction": "10000000",
+      "dailyCap": "50000000"
+    }
+  ],
   "owner": "0x3F5b96A494061F7338Da529e3047809Ac6a7FB84",
   "demoVendor": "0x3F5b96A494061F7338Da529e3047809Ac6a7FB84",
   "deploymentBlock": 20550329,
   "restrictedAgentDeploymentBlock": 20550448,
+  "secondAgentDeploymentBlock": 20572193,
+  "secondAgentSetupTransactions": [
+    "0x4e3394180fc19e33040c67621ebf5628200e0d80b9c2a699ad6189f79df2a2d4",
+    "0x6fff354ad294dd1398859775cd444558f6dd293d07d833db77435eaae8ce9dfd",
+    "0x878fe66c584865e966708a1b0f00475f8096230ea9f5268c0834c95400b915ba",
+    "0x19a2d89d31c8e7e7b9735a93752c1c3d97928d2a5aef878b426bcb732143dffc"
+  ],
   "proofTransactions": [
     "0xdbe5d62aec8ef6d9a8d8a9c7c26bf74b1d3e7ed3dbd47733543b0844c9cba50a"
   ]
