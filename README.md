@@ -9,6 +9,7 @@ It requests, the vault decides, the paymaster pays.
 ## Stack
 
 - **Smart contracts**: `BOTSpendVault`, `BOTSpendPaymaster`, `SimpleAccountFactory` (ERC-4337)
+- **Mainnet account path**: `RestrictedAgentAccountFactory` deploys vault-bound ERC-4337 agent accounts that reject arbitrary calls and require the configured paymaster.
 - **Chain**: BOT Chain Testnet 968 (RPC `rpc.bohr.life`, Skandha bundler `bundler.bohr.life`)
 - **Account abstraction**: ERC-4337 UserOperations, Skandha bundler, paymaster-sponsored gas
 - **Backend**: Base44 entities, functions, auth, real-time sync
@@ -63,6 +64,9 @@ Deposit native BOT to the EntryPoint to fund gasless operations.
 
 Creates and manages ERC-4337 smart accounts for agents.
 Each agent gets its own account controlled by an owner EOA.
+
+The currently hosted testnet demo uses this legacy account deployment.
+New mainnet-oriented deployments use `RestrictedAgentAccountFactory`, which binds each account to one vault and paymaster and permits only `executeSpend` calls through EntryPoint.
 
 ## Dashboard
 
