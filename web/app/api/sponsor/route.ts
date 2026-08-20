@@ -14,6 +14,7 @@ import {
   rpcSchema,
   type Address,
   type Hex,
+  isAddress,
 } from "viem";
 import {privateKeyToAccount} from "viem/accounts";
 import {sponsor, type SignerConfig} from "@/lib/sponsor/signer";
@@ -78,6 +79,34 @@ const getUserOpHashAbi = parseAbi([
 ]);
 
 const bigMax = (a: bigint, b: bigint) => (a > b ? a : b);
+
+async function prepareIntentExecution(intentId: unknown, authorization: string | null) {
+  if (typeof intentId !== "string" || !intentId) {
+    return {error: "intent_id is required", status: 400} as const;
+  }
+  if (!authorization) return {error: "authentication_required", status: 401} as const;
+  const appId = process.env.NEXT_PUBLIC_BASE44_APP_ID;
+  if (!appId) return {error: "base44_not_configured", status: 503} as const;
+  const response = await fetch(`https://base44.app/api/apps/${appId}/functions/prepareIntentExecution`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json", Authorization: authorization, "X-App-Id": appId},
+    body: JSON.stringify({intent_id: intentId}),
+    cache: "no-store",
+  });
+  const payload = await response.json();
+  return response.ok && payload?.ok ? {execution: payload} as const : {error: payload?.error ?? "intent_preparation_failed", status: response.status || 502} as const;
+}
+
+async function finalizeIntentExecution(intentId: string, userOpHash: string, authorization: string) {
+  const appId = process.env.NEXT_PUBLIC_BASE44_APP_ID;
+  if (!appId) return;
+  await fetch(`https://base44.app/api/apps/${appId}/functions/finalizeIntentExecution`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json", Authorization: authorization, "X-App-Id": appId},
+    body: JSON.stringify({intent_id: intentId, user_op_hash: userOpHash}),
+    cache: "no-store",
+  });
+}
 
 async function chainNow(): Promise<number> {
   const blk = (await rpc.request({method: "eth_getBlockByNumber", params: ["latest", false]})) as {timestamp: Hex};
@@ -164,7 +193,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({error: "invalid_json", message: "Body must be JSON."}, {status: 400});
   }
   const b = body as Record<string, unknown>;
-  const amount = parseAmount(b.amountBaseUnits);
+  const authorization = req.headers.get("authorization");
+  const intentPreparation = b.intentId
+    ? await prepareIntentExecution(b.intentId, authorization)
+    : null;
+  if (intentPreparation && "error" in intentPreparation) {
+    return NextResponse.json({error: intentPreparation.error}, {status: intentPreparation.status});
+  }
+  const execution = intentPreparation?.execution;
+  const amount = parseAmount(execution?.amount ?? b.amountBaseUnits);
   if (amount === null) {
     return NextResponse.json({error: "invalid_amount", message: "amountBaseUnits must be a positive integer."}, {status: 400});
   }
@@ -178,11 +215,21 @@ export async function POST(req: NextRequest) {
   }
 
   // Support dynamic vault/paymaster/agent from request body (deployed vault flow)
-  const agentAddr = (typeof b.agent === "string" && b.agent.startsWith("0x") ? b.agent : DEMO.agent) as Address;
-  const vaultAddr = (typeof b.vault === "string" && b.vault.startsWith("0x") ? b.vault : CONTRACTS.vault) as Address;
+  const agentValue = execution?.agent ?? b.agent;
+  const vaultValue = execution?.vault ?? b.vault;
+  const tokenValue = execution?.token ?? b.mockUSD;
+  const recipientValue = execution?.recipient ?? b.vendor;
+  if (![agentValue, vaultValue, tokenValue, recipientValue].every((value) => typeof value === "string" && isAddress(value))) {
+    return NextResponse.json({error: "invalid_execution_addresses"}, {status: 400});
+  }
+  const agentAddr = agentValue as Address;
+  const vaultAddr = vaultValue as Address;
   const paymasterAddr = (typeof b.paymaster === "string" && b.paymaster.startsWith("0x") ? b.paymaster : CONTRACTS.paymaster) as Address;
-  const mockUSDAddr = (typeof b.mockUSD === "string" && b.mockUSD.startsWith("0x") ? b.mockUSD : CONTRACTS.mockUSD) as Address;
-  const vendorAddr = (typeof b.vendor === "string" && b.vendor.startsWith("0x") ? b.vendor : DEMO.vendor) as Address;
+  const mockUSDAddr = tokenValue as Address;
+  const vendorAddr = recipientValue as Address;
+  if (execution && typeof execution.action_id !== "string") {
+    return NextResponse.json({error: "invalid_execution_action_id"}, {status: 400});
+  }
 
   try {
     const verifyingSigner = privateKeyToAccount(signerKey!);
@@ -192,7 +239,9 @@ export async function POST(req: NextRequest) {
     const nonce = (await rpc.readContract({address: EP, abi: getNonceAbi, functionName: "getNonce", args: [agent, 0n]})) as bigint;
 
     // fresh actionId so the CAP/DAILY-CAP is the reason, never dedup
-    const actionId = keccak256(toBytes(`${agent}:${nonce}:${Date.now()}:${Math.random()}`));
+    const actionId = execution?.action_id
+      ? execution.action_id as Hex
+      : keccak256(toBytes(`${agent}:${nonce}:${Date.now()}:${Math.random()}`));
     const inner = encodeFunctionData({abi: executeSpendAbi, functionName: "executeSpend", args: [mockUSDAddr, vendorAddr, amount, "0x", actionId]});
     const callData = encodeFunctionData({abi: executeAbi, functionName: "execute", args: [vaultAddr, 0n, inner]});
 
@@ -248,6 +297,7 @@ export async function POST(req: NextRequest) {
     };
 
     const sent = await bundler.request({method: "eth_sendUserOperation", params: [unpacked, EP]});
+    if (execution && authorization) await finalizeIntentExecution(execution.intent_id, sent, authorization);
     return NextResponse.json({userOpHash: sent, amountBaseUnits: amount.toString()});
   } catch (e) {
     const err = e as {details?: string; shortMessage?: string; message?: string};
