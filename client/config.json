@@ -1,9 +1,9 @@
 {
   "chainId": "968",
-  "paymaster": "0x5431d8538Fc62Da83A02dCFc275616f24b4587c4",
-  "vault": "0xbE4e1109d0c8f9558E16A6C59388B6Fb210a2F88",
+  "paymaster": "0x0b860c25Dc6b2Df451AA66cFCdc7D6c6D7802F66",
+  "vault": "0xfB88d06289EaDD3aE23ef5C7bEF816baFfbf4000",
   "registeredSenders": [
-    "0xCc19a6CD4c18Ea52a0E49DAb62c5C0F22800fa2B"
+    "0x2649495B56e8c06C6682549438ac9279599A3aD8"
   ],
-  "checkInnerSelector": false
+  "checkInnerSelector": true
 }
