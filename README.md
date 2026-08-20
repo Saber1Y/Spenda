@@ -190,3 +190,12 @@ Navigate to `/dashboard/deploy` to deploy a fresh vault stack:
 
 Restricted testnet acceptance transaction:
 [`0xdbe5d62a...`](https://scan.bohr.life/tx/0xdbe5d62aec8ef6d9a8d8a9c7c26bf74b1d3e7ed3dbd47733543b0844c9cba50a).
+
+### Spend Token Policy
+
+- `BOT` is the native gas token on BOT Chain. It funds transaction fees and the paymaster deposit.
+- `mUSD` is a mintable test-only ERC-20 used by the current testnet demo.
+- BOT Chain's official bridge supports USDT.
+- Official BOT Chain testnet USDT: `0x75edC9335175Fc0552D51D48439F229c10420fe3`.
+- Official BOT Chain mainnet USDT: `0xaBabc7Ddc03e501d190C676BF3d92ef0e6e87a3C`.
+- Mainnet Spenda must use the official USDT contract or another explicitly verified supported asset, never `MockUSD`.
