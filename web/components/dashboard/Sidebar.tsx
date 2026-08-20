@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useAccount, useConnect } from "wagmi";
 import { Dot } from "@/components/ui/Icons";
 import { truncateAddress } from "@/lib/format";
-import { getBase44Client } from "@/lib/base44";
+import {loginWithGoogle} from "@/lib/auth";
 import Image from "next/image";
 
 const NAV_ITEMS = [
@@ -154,7 +154,6 @@ export function Sidebar({user}: SidebarProps) {
   const pathname = usePathname();
   const { address, isConnected } = useAccount();
   const { connect, connectors } = useConnect();
-  const client = getBase44Client();
 
   return (
     <aside className="fixed inset-y-0 left-0 z-40 flex w-[240px] flex-col border-r border-ash/15 bg-obsidian">
@@ -251,7 +250,7 @@ export function Sidebar({user}: SidebarProps) {
 
         {!user && (
           <button
-            onClick={() => client.auth.loginWithProvider("google", "/dashboard")}
+             onClick={() => loginWithGoogle("/dashboard")}
             className="flex w-full items-center gap-2.5 rounded-[12px] bg-base-orange/15 px-3 py-2.5 text-[13px] text-base-orange transition hover:bg-base-orange/25"
           >
             <svg className="h-4 w-4" viewBox="0 0 24 24">

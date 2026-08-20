@@ -4,6 +4,7 @@ import {useState, type FormEvent} from "react";
 import {useRouter} from "next/navigation";
 import Link from "next/link";
 import {getBase44Client} from "@/lib/base44";
+import {loginWithGoogle} from "@/lib/auth";
 import {Logo} from "@/components/ui/Logo";
 import {Button} from "@/components/ui/Button";
 
@@ -54,7 +55,7 @@ export default function RegisterPage() {
   }
 
   function handleGoogle() {
-    getBase44Client().auth.loginWithProvider("google", "/dashboard");
+    loginWithGoogle("/dashboard");
   }
 
   return (
