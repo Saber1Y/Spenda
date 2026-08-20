@@ -83,18 +83,20 @@ When the deposit empties, runs pause cleanly with `AA31` rather than crashing.
 - Repo hygiene: `internal/` (PRD + `keys.json`) and Foundry `cache/` (which holds forge-script "sensitive
   values") are gitignored. No private key is committed.
 
-## Known v1 limitation (stated plainly)
+## Legacy testnet limitation and mainnet replacement
 
 **Invariant "the agent account holds nothing" is not on-chain-enforceable.** Anyone can call
 `EntryPoint.depositTo(agentAccount)` (permissionless), and a funded `SimpleAccount`'s *unrestricted*
 `execute` could then self-sponsor a call to **any** target — bypassing Fence 1. v1 enforces the invariant
 **operationally** (never fund/deposit the account; asserted 0/0 before the gasless run).
 
-**The real fix (v2): `RestrictedAgentAccount`** — a purpose-built account whose `execute` path is
-constrained on-chain to only call `vault.executeSpend(...)` on the configured vault (rejecting any other
-`dest`/selector) and which disables `addDeposit`. Then even a funded account cannot go off-scope, and
-Fence 1 no longer depends on balance state or the paymaster. This closes the self-sponsor bypass
-structurally.
+The repository now includes `RestrictedAgentAccount` and `RestrictedAgentAccountFactory` for new deployments.
+The account binds validation to one paymaster, never prefunds EntryPoint from account funds, accepts execution only from EntryPoint, and permits only zero-value `vault.executeSpend(...)` calls to its configured vault.
+Dedicated tests force-fund the account and its EntryPoint deposit and verify that a UserOperation using another paymaster is rejected.
+
+The currently hosted demo addresses still refer to the legacy `SimpleAccount` deployment.
+They must not be represented as the restricted mainnet deployment.
+Mainnet launch requires deploying the new factory and accounts, configuring the deployment manifest, and rerunning fork and live bundler acceptance tests against those addresses.
 
 ## Responsible disclosure
 
