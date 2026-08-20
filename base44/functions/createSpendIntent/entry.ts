@@ -120,6 +120,8 @@ Deno.serve(async (req) => {
       ethCall(token, encodeCall(BALANCE_OF_SEL, vaultAddress)),
     ]);
     const amountBigInt = BigInt(amount);
+    const riskPolicies = await base44.asServiceRole.entities.RiskPolicy.filter({vault_id, active: true}, "-created_at", 1);
+    const riskPolicy = riskPolicies[0] ?? {medium_threshold: 30, high_threshold: 60, critical_threshold: 80, auto_approval_limit: "0", human_approval_limit: "0", rwa_multiplier_bps: 10000};
     const maxPerTransaction = word(policyResult, 0);
     const dailyCap = word(policyResult, 1);
     const active = word(policyResult, 5) !== 0n;
@@ -130,12 +132,16 @@ Deno.serve(async (req) => {
     const vaultBalance = word(balanceResult, 0);
     const policyValid = active && (expiry === 0n || BigInt(expires_at) <= expiry) && tokenAllowlisted && recipientAllowlisted && amountBigInt <= maxPerTransaction && amountBigInt <= remainingDailyBudget && amountBigInt <= vaultBalance;
     const risk = calculateRisk({amount: amountBigInt, maxPerTransaction, remainingDailyBudget, recipientAllowlisted, tokenAllowlisted, knownContract: recipientAllowlisted, unusualVelocity: false, category});
-    const decision = !policyValid ? "blocked" : risk.recommendation === "block" ? "blocked" : risk.recommendation === "human_approval" ? "requires_approval" : "approved";
+    const policyScore = intent_type === "rwa_purchase" || category === "rwa"
+      ? Math.min(100, Math.floor(risk.score * Number(riskPolicy.rwa_multiplier_bps) / 10000))
+      : risk.score;
+    const policyLevel = policyScore >= Number(riskPolicy.critical_threshold) ? "critical" : policyScore >= Number(riskPolicy.high_threshold) ? "high" : policyScore >= Number(riskPolicy.medium_threshold) ? "medium" : "low";
+    const decision = !policyValid ? "blocked" : policyLevel === "critical" ? "blocked" : policyLevel === "high" || amountBigInt >= BigInt(riskPolicy.human_approval_limit || "0") && riskPolicy.human_approval_limit !== "0" ? "requires_approval" : amountBigInt <= BigInt(riskPolicy.auto_approval_limit || "0") || riskPolicy.auto_approval_limit === "0" && policyLevel === "low" ? "approved" : "requires_approval";
     const reason = !active ? "agent not active" : expiry !== 0n && BigInt(expires_at) > expiry ? "policy expires before intent" : !tokenAllowlisted ? "token not allowlisted" : !recipientAllowlisted ? "target not allowlisted" : amountBigInt > maxPerTransaction ? "exceeds maxPerTx" : amountBigInt > remainingDailyBudget ? "exceeds dailyCap" : amountBigInt > vaultBalance ? "insufficient vault balance" : decision === "requires_approval" ? "risk requires human approval" : decision === "blocked" ? "critical risk" : "within policy";
     const intentId = `intent_${crypto.randomUUID()}`;
     const actionId = randomBytes32();
     const intent = await base44.asServiceRole.entities.SpendIntent.create({vault_id, agent_id, intent_type, description: description.trim(), token: token.toLowerCase(), amount, recipient: recipient.toLowerCase(), category, merchant_id, metadata: metadata ?? {}, expires_at: new Date(expires_at * 1000).toISOString(), status: decision, action_id: actionId, validation_errors: policyValid ? [] : [reason]});
-    const assessment = await base44.asServiceRole.entities.RiskAssessment.create({vault_id, intent_id: intent.id ?? intentId, algorithm_version: risk.algorithm_version, score: risk.score, level: risk.level, factors: risk.factors, recommendation: risk.recommendation, created_at_chain_time: new Date().toISOString()});
+    const assessment = await base44.asServiceRole.entities.RiskAssessment.create({vault_id, intent_id: intent.id ?? intentId, algorithm_version: `${risk.algorithm_version}+${riskPolicy.version ?? "default"}`, score: policyScore, level: policyLevel, factors: risk.factors, recommendation: decision === "blocked" ? "block" : decision === "requires_approval" ? "human_approval" : "automatic", created_at_chain_time: new Date().toISOString()});
     let approval;
     if (decision === "requires_approval") {
       approval = await base44.asServiceRole.entities.ApprovalRequest.create({vault_id, intent_id: intent.id ?? intentId, agent_id, approval_nonce: randomBytes32(), status: "pending", expires_at: new Date(expires_at * 1000).toISOString()});
