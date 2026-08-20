@@ -1,0 +1,30 @@
+{
+  "name": "SpendingReceipt",
+  "type": "object",
+  "title": "Spending Receipt",
+  "description": "Searchable decision and on-chain execution receipt",
+  "properties": {
+    "vault_id": {"type": "string"},
+    "receipt_number": {"type": "string"},
+    "intent_id": {"type": "string"},
+    "agent_id": {"type": "string"},
+    "agent_address": {"type": "string"},
+    "amount": {"type": "string"},
+    "token": {"type": "string"},
+    "recipient": {"type": "string"},
+    "intent_type": {"type": "string"},
+    "category": {"type": "string"},
+    "risk_assessment_id": {"type": "string"},
+    "risk_score": {"type": "integer", "minimum": 0, "maximum": 100},
+    "decision": {"type": "string", "enum": ["approved", "blocked", "human_approved", "human_rejected"]},
+    "decision_reason": {"type": "string"},
+    "approval_id": {"type": "string"},
+    "action_id": {"type": "string"},
+    "user_op_hash": {"type": "string"},
+    "transaction_hash": {"type": "string"},
+    "block_number": {"type": "string"},
+    "created_at_chain_time": {"type": "string"}
+  },
+  "required": ["vault_id", "receipt_number", "intent_id", "agent_id", "amount", "token", "recipient", "decision", "decision_reason"],
+  "rls": {"create": true, "read": {"created_by": "{{user.email}}"}, "update": false, "delete": false}
+}
