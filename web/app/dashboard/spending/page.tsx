@@ -11,7 +11,6 @@ import {Chip, TxChip} from "@/components/ui/Chip";
 import {StateBadge} from "@/components/ui/StateBadge";
 import {Button} from "@/components/ui/Button";
 import {Dot} from "@/components/ui/Icons";
-import {RunAgentPanel} from "@/components/dashboard/RunAgentPanel";
 
 type Filter = "all" | "approved" | "blocked";
 
@@ -137,11 +136,6 @@ export default function SpendingPage() {
             sub="fence working"
           />
         </div>
-      </div>
-
-      {/* Run Agent */}
-      <div className="mt-6">
-        <RunAgentPanel refetch={() => { history.refetch(); refetchState(); refetchTx(); }} />
       </div>
 
       {/* Filter tabs + Table */}
