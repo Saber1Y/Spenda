@@ -154,18 +154,23 @@ npm run dev
 
 ### Testing the Spend Flow
 
-1. Connect wallet (owner EOA)
-2. Navigate to Spending page
-3. Click "Spend 4 mUSD" — should approve (within policy)
-4. Click "Spend 6 mUSD" — should block (exceeds per-tx cap)
-5. Enter custom amount in the input field — policy decides
+1. Run `scripts/preflight-deployment.sh deployments/testnet-968.json`.
+2. Connect the vault owner wallet and sign in.
+3. Open Agents and confirm the restricted agent and budget.
+4. Open Commerce and select an active paying agent.
+5. Create a safe intent and observe automatic execution.
+6. Open Approvals for a risky intent and approve it with the owner wallet.
+7. Open Receipts and verify the on-chain transaction hash.
+8. Open Monitoring and refresh the chain-derived health snapshot.
+
+See [DEMO_CHECKLIST.md](./DEMO_CHECKLIST.md) for the complete testnet demo sequence.
 
 ### Deploying a New Vault
 
 Navigate to `/dashboard/deploy` to deploy a fresh vault stack:
 - BOTSpendVault
 - BOTSpendPaymaster
-- SimpleAccountFactory
+- RestrictedAgentAccountFactory
 - Agent account creation
 - Policy configuration
 - Allowlist setup
