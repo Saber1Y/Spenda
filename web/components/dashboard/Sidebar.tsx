@@ -14,6 +14,7 @@ const NAV_ITEMS = [
   { href: "/dashboard/approvals", label: "Approvals", icon: "hand" },
   { href: "/dashboard/receipts", label: "Receipts", icon: "receipt" },
   { href: "/dashboard/commerce", label: "Commerce", icon: "shop" },
+  { href: "/dashboard/risk", label: "Risk Policy", icon: "shield" },
   { href: "/dashboard/policies", label: "Policies", icon: "shield" },
   { href: "/dashboard/agents", label: "Agents", icon: "bot" },
   { href: "/dashboard/allowlist", label: "Allowlist", icon: "list" },
