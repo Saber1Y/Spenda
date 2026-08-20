@@ -9,6 +9,7 @@ import {formatMusd, truncateAddress} from "@/lib/format";
 import {Button} from "@/components/ui/Button";
 import {Chip} from "@/components/ui/Chip";
 import {Panel} from "@/components/dashboard/Panel";
+import {executeIntent} from "@/lib/intent-execution";
 
 export default function ApprovalsPage() {
   const active = getActiveContracts();
@@ -42,6 +43,7 @@ export default function ApprovalsPage() {
       const result = await client.functions.invoke("decideApproval", {approval_id: approval.id, decision, signer: address ?? "", signature, reason: decision === "approved" ? "Approved by vault owner" : "Rejected by vault owner"});
       const response = result?.data ?? result;
       if (!response?.ok) throw new Error(response?.error ?? "Approval update failed");
+      if (decision === "approved") await executeIntent(approval.intent_id);
       refetch();
     } catch (error) {
       window.alert(error instanceof Error ? error.message : String(error));
