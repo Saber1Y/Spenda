@@ -12,6 +12,10 @@
       "type": "string",
       "description": "On-chain vault contract address"
     },
+    "owner_address": {
+      "type": "string",
+      "description": "Owner wallet authorized to configure the vault"
+    },
     "chain_id": {
       "type": "integer",
       "description": "Blockchain chain ID",

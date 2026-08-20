@@ -103,6 +103,7 @@ Deno.serve(async (req) => {
     const active = decodeBool(policyData, 5);
     const remainingDailyCap = decodeUint256(remainingResult);
     const paymasterDeposit = decodeUint256(paymasterDepositResult);
+    const ownerAddress = decodeAddress(ownerResult);
     const isDeployed = !!codeResult && codeResult !== "0x";
 
     const now = new Date().toISOString();
@@ -111,6 +112,7 @@ Deno.serve(async (req) => {
 
     const vaultData = {
       contract_address: vaultAddr,
+      owner_address: ownerAddress,
       chain_id: 968,
       agent_address: agent,
       display_name: "Spenda Demo Vault",
