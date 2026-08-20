@@ -1,0 +1,19 @@
+{
+  "name": "OperationsAlert",
+  "type": "object",
+  "title": "Operations Alert",
+  "description": "Actionable operational warning derived from chain or execution state",
+  "properties": {
+    "vault_id": {"type": "string"},
+    "code": {"type": "string"},
+    "severity": {"type": "string", "enum": ["info", "warning", "critical"]},
+    "message": {"type": "string"},
+    "agent_id": {"type": "string"},
+    "intent_id": {"type": "string"},
+    "status": {"type": "string", "enum": ["open", "acknowledged", "resolved"], "default": "open"},
+    "evidence": {"type": "object"},
+    "observed_at": {"type": "string", "format": "date-time"}
+  },
+  "required": ["vault_id", "code", "severity", "message", "status", "observed_at"],
+  "rls": {"create": true, "read": {"created_by": "{{user.email}}"}, "update": false, "delete": false}
+}
