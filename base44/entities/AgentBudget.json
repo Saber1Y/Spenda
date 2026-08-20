@@ -1,0 +1,23 @@
+{
+  "name": "AgentBudget",
+  "type": "object",
+  "title": "Agent Budget",
+  "description": "Application projection of an agent's on-chain authorization budget",
+  "properties": {
+    "vault_id": {"type": "string"},
+    "agent_id": {"type": "string"},
+    "agent_address": {"type": "string"},
+    "daily_cap": {"type": "string"},
+    "max_per_transaction": {"type": "string"},
+    "spent_today": {"type": "string"},
+    "remaining_daily": {"type": "string"},
+    "auto_approval_limit": {"type": "string"},
+    "human_approval_limit": {"type": "string"},
+    "starts_at": {"type": "string", "format": "date-time"},
+    "expires_at": {"type": "string", "format": "date-time"},
+    "active": {"type": "boolean", "default": true},
+    "last_synced_at": {"type": "string", "format": "date-time"}
+  },
+  "required": ["vault_id", "agent_address", "daily_cap", "max_per_transaction"],
+  "rls": {"create": true, "read": {"created_by": "{{user.email}}"}, "update": {"created_by": "{{user.email}}"}, "delete": false}
+}
