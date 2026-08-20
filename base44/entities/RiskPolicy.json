@@ -1,0 +1,22 @@
+{
+  "name": "RiskPolicy",
+  "type": "object",
+  "title": "Risk Policy",
+  "description": "Versioned deterministic risk thresholds for a vault",
+  "properties": {
+    "vault_id": {"type": "string"},
+    "version": {"type": "string"},
+    "auto_approval_limit": {"type": "string"},
+    "human_approval_limit": {"type": "string"},
+    "medium_threshold": {"type": "integer", "minimum": 0, "maximum": 100},
+    "high_threshold": {"type": "integer", "minimum": 0, "maximum": 100},
+    "critical_threshold": {"type": "integer", "minimum": 0, "maximum": 100},
+    "rwa_multiplier_bps": {"type": "integer", "minimum": 10000, "maximum": 50000},
+    "velocity_window_seconds": {"type": "integer", "minimum": 60, "maximum": 604800},
+    "active": {"type": "boolean", "default": true},
+    "updated_by": {"type": "string"},
+    "updated_at": {"type": "string", "format": "date-time"}
+  },
+  "required": ["vault_id", "version", "auto_approval_limit", "human_approval_limit", "medium_threshold", "high_threshold", "critical_threshold", "rwa_multiplier_bps"],
+  "rls": {"create": true, "read": {"created_by": "{{user.email}}"}, "update": false, "delete": false}
+}
