@@ -83,6 +83,11 @@ The fences were exercised for real, with matching before/after deltas:
 - **End-to-end via the deployed `/api/sponsor`** — the server route (env-loaded keys, server-side
   sponsor + owner-sign, live `eth_sendUserOperation`) produced a real approved run; the client's bounded
   receipt poll resolved the outcome from the **actual event** (never optimistically).
+- **Restricted-account acceptance** — a fresh `RestrictedAgentAccount` at
+  `0x2649495B56e8c06C6682549438ac9279599A3aD8` executed a sponsored 4 mUSD spend while its native balance
+  and EntryPoint deposit remained zero. The transaction emitted `AgentActionApproved`,
+  `AgentActionDecision`, and `ReceiptIssued`: tx
+  [`0xdbe5d62a...`](https://scan.bohr.life/tx/0xdbe5d62aec8ef6d9a8d8a9c7c26bf74b1d3e7ed3dbd47733543b0844c9cba50a).
 
 ### Failure modes are treated as first-class
 
