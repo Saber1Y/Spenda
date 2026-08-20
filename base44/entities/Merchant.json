@@ -1,0 +1,20 @@
+{
+  "name": "Merchant",
+  "type": "object",
+  "title": "Merchant",
+  "description": "Approved merchant or demo sandbox provider",
+  "properties": {
+    "vault_id": {"type": "string"},
+    "merchant_id": {"type": "string"},
+    "display_name": {"type": "string"},
+    "description": {"type": "string"},
+    "category": {"type": "string", "enum": ["saas", "ai", "compute", "domain", "hosting", "agent", "rwa", "other"]},
+    "payment_address": {"type": "string"},
+    "token": {"type": "string"},
+    "price": {"type": "string"},
+    "sandbox": {"type": "boolean", "default": true},
+    "status": {"type": "string", "enum": ["active", "inactive"], "default": "active"}
+  },
+  "required": ["vault_id", "merchant_id", "display_name", "category", "payment_address", "token"],
+  "rls": {"create": true, "read": {"created_by": "{{user.email}}"}, "update": {"created_by": "{{user.email}}"}, "delete": false}
+}
