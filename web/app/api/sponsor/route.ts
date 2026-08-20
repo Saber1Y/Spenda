@@ -215,7 +215,13 @@ export async function POST(req: NextRequest) {
       paymasterPostOpGasLimit: PM_PGL,
     };
 
-    const cfg: SignerConfig = {chainId: CHAIN_ID, paymaster: paymasterAddr, vault: vaultAddr, registeredSenders: [agent]};
+    const cfg: SignerConfig = {
+      chainId: CHAIN_ID,
+      paymaster: paymasterAddr,
+      vault: vaultAddr,
+      registeredSenders: [agent],
+      checkInnerSelector: true,
+    };
     const res = await sponsor(op, cfg, verifyingSigner, await chainNow());
     if (!res.sponsored) {
       return NextResponse.json({error: "not_sponsorable", message: res.reason}, {status: 400});
