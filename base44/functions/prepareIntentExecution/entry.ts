@@ -1,6 +1,7 @@
 import {createClientFromRequest} from "npm:@base44/sdk";
 
 const HEX32 = /^0x[0-9a-fA-F]{64}$/;
+const LEASE_MS = 10 * 60 * 1000;
 
 Deno.serve(async (req) => {
   try {
@@ -13,7 +14,14 @@ Deno.serve(async (req) => {
     const intents = await base44.asServiceRole.entities.SpendIntent.filter({id: intent_id});
     if (intents.length === 0) return Response.json({ok: false, error: "intent_not_found"}, {status: 404});
     const intent = intents[0];
-    if (!["approved"].includes(intent.status)) return Response.json({ok: false, error: "intent_not_approved"}, {status: 409});
+    if (intent.status === "executing") {
+      const leaseExpires = Date.parse(intent.execution_lease_expires_at ?? "");
+      if (Number.isFinite(leaseExpires) && leaseExpires > Date.now()) {
+        return Response.json({ok: false, error: "execution_in_progress", attempt_id: intent.execution_attempt_id}, {status: 409});
+      }
+      return Response.json({ok: false, error: "execution_lease_expired_requires_reconciliation"}, {status: 409});
+    }
+    if (intent.status !== "approved") return Response.json({ok: false, error: "intent_not_approved"}, {status: 409});
     if (Date.parse(intent.expires_at) <= Date.now()) {
       await base44.asServiceRole.entities.SpendIntent.update(intent.id, {status: "expired"});
       return Response.json({ok: false, error: "intent_expired"}, {status: 409});
@@ -38,14 +46,19 @@ Deno.serve(async (req) => {
       if (approvals.length === 0 || approvals[0].status !== "approved") return Response.json({ok: false, error: "human_approval_required"}, {status: 409});
     }
 
+    const attemptId = crypto.randomUUID();
     await base44.asServiceRole.entities.SpendIntent.update(intent.id, {
       status: "executing",
       execution_started_at: new Date().toISOString(),
       execution_started_by: user.id ?? user.email ?? "user",
+      execution_attempt_id: attemptId,
+      execution_lease_expires_at: new Date(Date.now() + LEASE_MS).toISOString(),
+      execution_failure: "",
     });
     return Response.json({
       ok: true,
       intent_id: intent.id,
+      attempt_id: attemptId,
       vault: vault.contract_address,
       agent: agents[0].address,
       token: intent.token,
