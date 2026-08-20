@@ -1,6 +1,6 @@
 import {parseAbi, type Address} from "viem";
 
-/** Live BOT Chain 968 deployment (from the backend handoff). All addresses are public. */
+/** Live BOT Chain 968 deployment mirrored from deployments/testnet-968.json. */
 export const CONTRACTS = {
   entryPoint: "0x0000000071727De22E5E9d8BAf0edAc6f37da032",
   mockUSD: "0xAD6F06ebA7927FC0f114c296C221fCfd6C5eBf58",
