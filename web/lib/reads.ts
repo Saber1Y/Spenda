@@ -44,11 +44,11 @@ export async function readVaultState(agent: Address): Promise<VaultState> {
     agentCode,
     vaultOwner,
   ] = await Promise.all([
-    publicClient.readContract({address: CONTRACTS.mockUSD, abi: erc20Abi, functionName: "balanceOf", args: [vault]}),
+    publicClient.readContract({address: active.mockUSD, abi: erc20Abi, functionName: "balanceOf", args: [vault]}),
     publicClient.readContract({address: vault, abi: vaultAbi, functionName: "getPolicy", args: [agent]}),
     publicClient.readContract({address: vault, abi: vaultAbi, functionName: "remainingDailyCap", args: [agent]}),
     publicClient.readContract({address: vault, abi: vaultAbi, functionName: "allowedTarget", args: [agent, vendor]}),
-    publicClient.readContract({address: vault, abi: vaultAbi, functionName: "allowedToken", args: [agent, CONTRACTS.mockUSD]}),
+    publicClient.readContract({address: vault, abi: vaultAbi, functionName: "allowedToken", args: [agent, active.mockUSD]}),
     publicClient.readContract({address: CONTRACTS.entryPoint, abi: entryPointAbi, functionName: "balanceOf", args: [active.paymaster]}),
     publicClient.getBalance({address: agent}),
     publicClient.readContract({address: CONTRACTS.entryPoint, abi: entryPointAbi, functionName: "balanceOf", args: [agent]}),
