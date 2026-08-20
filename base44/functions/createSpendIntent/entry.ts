@@ -108,6 +108,10 @@ Deno.serve(async (req) => {
     const agents = await base44.asServiceRole.entities.Agent.filter({id: agent_id, vault_id});
     if (agents.length === 0 || agents[0].status !== "active") return Response.json({ok: false, error: "agent_not_authorized"}, {status: 403});
     const agentAddress = agents[0].address;
+    if (merchant_id) {
+      const merchants = await base44.asServiceRole.entities.Merchant.filter({vault_id, merchant_id, status: "active"});
+      if (merchants.length === 0 || merchants[0].payment_address.toLowerCase() !== recipient.toLowerCase()) return Response.json({ok: false, error: "merchant_not_authorized"}, {status: 403});
+    }
     const [policyResult, remainingResult, targetResult, tokenResult, balanceResult] = await Promise.all([
       ethCall(vaultAddress, encodeCall(GET_POLICY_SEL, agentAddress)),
       ethCall(vaultAddress, encodeCall(REMAINING_DAILY_SEL, agentAddress)),
