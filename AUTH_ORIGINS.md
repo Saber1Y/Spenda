@@ -19,6 +19,10 @@ The Google login button builds the callback from `window.location.origin`, so lo
 The Base44 app ID remains public configuration.
 The access token is stored in browser local storage by the SDK callback and is forwarded to Base44 functions when needed.
 
+Spenda also exposes wallet authentication at `/api/auth/wallet/*`.
+Wallet sessions use a one-time challenge, a chain-968 signed message, and an HTTP-only cookie.
+This flow is independent of the Base44 hosted domain and works on localhost and Vercel.
+
 ## Base44 Configuration
 
 The Base44 application must allow both callback origins in its OAuth/domain settings:
@@ -35,5 +39,7 @@ Do not set the Base44 dashboard URL as the user-facing redirect target.
 - Callback redirects accept only same-origin relative paths.
 - External `next` URLs are replaced with `/dashboard`.
 - Private keys remain server-only.
+- Wallet sessions use `SPENDA_SESSION_SECRET`, which must be set in Vercel and local server environments.
+- Before deploying wallet auth to Vercel, set `SPENDA_SESSION_SECRET` for Production, Preview, and Development as appropriate.
 - Browser tokens are never placed in `NEXT_PUBLIC_` environment variables.
 - Local and production origins must be configured separately in the OAuth provider.
