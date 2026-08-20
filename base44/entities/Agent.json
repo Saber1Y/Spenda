@@ -8,10 +8,7 @@
       "type": "string",
       "description": "Reference to the Vault entity"
     },
-    "address": {
-      "type": "string",
-      "description": "SimpleAccount contract address"
-    },
+    "address": {"type": "string", "description": "RestrictedAgentAccount contract address"},
     "owner_eoa": {
       "type": "string",
       "description": "Owner EOA that signs UserOps"
@@ -33,7 +30,13 @@
       "type": "boolean",
       "description": "Whether the SimpleAccount is deployed on-chain",
       "default": false
-    }
+    },
+    "factory_address": {"type": "string"},
+    "vault_address": {"type": "string"},
+    "paymaster_address": {"type": "string"},
+    "salt": {"type": "string"},
+    "capabilities": {"type": "array", "items": {"type": "string"}},
+    "payment_address": {"type": "string"}
   },
   "required": ["vault_id", "address"],
   "rls": {
