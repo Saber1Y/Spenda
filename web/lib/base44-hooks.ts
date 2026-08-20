@@ -102,3 +102,27 @@ export function usePolicyEntities(vaultId?: string) {
     [vaultId],
   );
 }
+
+/** Fetch pending human approvals for a vault. */
+export function useApprovalEntities(vaultId?: string) {
+  return useEntityList(
+    () => vaultId ? queryEntities("ApprovalRequest", {vault_id: vaultId, status: "pending"}, "-created_at", 100) : Promise.resolve([]),
+    [vaultId],
+  );
+}
+
+/** Fetch searchable spending receipts for a vault. */
+export function useReceiptEntities(vaultId?: string) {
+  return useEntityList(
+    () => vaultId ? queryEntities("SpendingReceipt", {vault_id: vaultId}, "-created_at", 100) : Promise.resolve([]),
+    [vaultId],
+  );
+}
+
+/** Fetch application budget projections for a vault. */
+export function useBudgetEntities(vaultId?: string) {
+  return useEntityList(
+    () => vaultId ? queryEntities("AgentBudget", {vault_id: vaultId}, "-created_at", 100) : Promise.resolve([]),
+    [vaultId],
+  );
+}
