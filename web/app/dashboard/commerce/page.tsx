@@ -7,6 +7,7 @@ import {getBase44Client} from "@/lib/base44";
 import {Button} from "@/components/ui/Button";
 import {Chip} from "@/components/ui/Chip";
 import {Panel} from "@/components/dashboard/Panel";
+import {executeIntent} from "@/lib/intent-execution";
 
 const DEMO_MERCHANTS = [
   {merchant_id: "spotify-premium", display_name: "Spotify Premium renewal", category: "saas", description: "Renew a subscription under the agent's budget", price: "11990000"},
@@ -58,7 +59,14 @@ export default function CommercePage() {
         expires_at: Math.floor(Date.now() / 1000) + 2 * 60 * 60,
       });
       const response = result?.data ?? result;
-      setStatus(response?.ok ? `${response.decision}: ${response.decision_reason}. No funds move until an approved intent is executed.` : response?.error ?? "Intent failed");
+      if (!response?.ok) throw new Error(response?.error ?? "Intent failed");
+      if (response.decision === "approved") {
+        setStatus(`Approved: ${response.decision_reason}. Submitting restricted UserOperation...`);
+        const execution = await executeIntent(response.intent.id);
+        setStatus(`${execution.outcome.kind}: ${execution.outcome.reason ?? "vault executed the payment"}`);
+      } else {
+        setStatus(`${response.decision}: ${response.decision_reason}. No funds moved.`);
+      }
     } catch (error) {
       setStatus(error instanceof Error ? error.message : String(error));
     }
