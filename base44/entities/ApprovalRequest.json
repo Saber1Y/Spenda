@@ -1,0 +1,20 @@
+{
+  "name": "ApprovalRequest",
+  "type": "object",
+  "title": "Approval Request",
+  "description": "Scoped human approval for one spend intent",
+  "properties": {
+    "vault_id": {"type": "string"},
+    "intent_id": {"type": "string"},
+    "agent_id": {"type": "string"},
+    "approval_nonce": {"type": "string"},
+    "status": {"type": "string", "enum": ["pending", "approved", "rejected", "expired", "consumed"]},
+    "expires_at": {"type": "string", "format": "date-time"},
+    "signer": {"type": "string"},
+    "signature": {"type": "string"},
+    "decision_reason": {"type": "string"},
+    "consumed_at": {"type": "string", "format": "date-time"}
+  },
+  "required": ["vault_id", "intent_id", "agent_id", "approval_nonce", "status", "expires_at"],
+  "rls": {"create": true, "read": {"created_by": "{{user.email}}"}, "update": false, "delete": false}
+}
