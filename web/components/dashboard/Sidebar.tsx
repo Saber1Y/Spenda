@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { href: "/dashboard/spending", label: "Spending", icon: "credit" },
   { href: "/dashboard/approvals", label: "Approvals", icon: "hand" },
   { href: "/dashboard/receipts", label: "Receipts", icon: "receipt" },
+  { href: "/dashboard/commerce", label: "Commerce", icon: "shop" },
   { href: "/dashboard/policies", label: "Policies", icon: "shield" },
   { href: "/dashboard/agents", label: "Agents", icon: "bot" },
   { href: "/dashboard/allowlist", label: "Allowlist", icon: "list" },
@@ -134,6 +135,8 @@ function NavIcon({ icon }: { icon: string }) {
       return <span className={`${cls} flex items-center justify-center text-[13px]`}>!</span>;
     case "receipt":
       return <span className={`${cls} flex items-center justify-center text-[13px]`}>#</span>;
+    case "shop":
+      return <span className={`${cls} flex items-center justify-center text-[13px]`}>$</span>;
     default:
       return null;
   }
