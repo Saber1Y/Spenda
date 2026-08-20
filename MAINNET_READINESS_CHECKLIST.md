@@ -5,11 +5,11 @@ Do not broadcast a mainnet deployment until every required value is verified.
 
 ## Network and Contracts
 
-- [ ] Official BOT Chain mainnet chain ID confirmed.
-- [ ] Official mainnet RPC confirmed.
+- [x] Official BOT Chain mainnet chain ID confirmed: `677`.
+- [x] Official mainnet RPC confirmed: `https://rpc.botchain.ai`.
 - [ ] Official mainnet bundler confirmed.
 - [ ] Official mainnet EntryPoint address confirmed.
-- [ ] Official supported stablecoin address confirmed.
+- [x] Official supported stablecoin confirmed: USDT at `0xaBabc7Ddc03e501d190C676BF3d92ef0e6e87a3C`, 6 decimals.
 - [ ] Contract source verified on the mainnet explorer.
 - [ ] `BOTSpendVault` owner constructor address verified.
 - [ ] `BOTSpendPaymaster.VAULT()` matches the deployed vault.
