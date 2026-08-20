@@ -3,25 +3,25 @@ import {parseAbi, type Address} from "viem";
 /** Live BOT Chain 968 deployment (from the backend handoff). All addresses are public. */
 export const CONTRACTS = {
   entryPoint: "0x0000000071727De22E5E9d8BAf0edAc6f37da032",
-  mockUSD: "0x981a7E272F309193D846dc585b64E4a2f172aD21",
-  vault: "0xf23147df55089ea6ba87bf24bb4eee6f7cea182b",
-  factory: "0xC7e8a13d62752Eb58b21391f2BA302B1043D13b1",
-  paymaster: "0xde609e52d9164c227d4f174d6260289bc3e62ec2",
+  mockUSD: "0xAD6F06ebA7927FC0f114c296C221fCfd6C5eBf58",
+  vault: "0xfB88d06289EaDD3aE23ef5C7bEF816baFfbf4000",
+  factory: "0x3951041d3e98A34EeDBefd9Db660d29F68B2387b",
+  paymaster: "0x0b860c25Dc6b2Df451AA66cFCdc7D6c6D7802F66",
 } as const satisfies Record<string, Address>;
 
 /** Deployed agent + its owner EOA + the allowlisted vendor. */
 export const DEMO = {
-  agent: "0xfdfa27c2ecc43e7b76a098409e95d125e0089598",
+  agent: "0x2649495B56e8c06C6682549438ac9279599A3aD8",
   agentOwnerEOA: "0x3F5b96A494061F7338Da529e3047809Ac6a7FB84",
   vendor: "0x3F5b96A494061F7338Da529e3047809Ac6a7FB84",
 } as const satisfies Record<string, Address>;
 
 /** Vault deploy block — the fromBlock floor for the history log reader. */
-export const DEPLOY_BLOCK = 15_388_923n;
+export const DEPLOY_BLOCK = 20_550_329n;
 
 /** The two headline artifacts for the marketing LiveProof (real, on-chain). */
 export const PROOF_TX = {
-  approved: "0xb2143fb3de65583fa75655b068cf23189a39b1a810c98e41653f67c7f6997d2c",
+  approved: "0xdbe5d62aec8ef6d9a8d8a9c7c26bf74b1d3e7ed3dbd47733543b0844c9cba50a",
   blocked: "0x299021d91bdd354f3c9462629b0f10219578be08f1fe9c3e9e187e982e7f25f9",
 } as const;
 
