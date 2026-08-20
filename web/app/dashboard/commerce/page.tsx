@@ -21,7 +21,8 @@ export default function CommercePage() {
   const active = getActiveContracts();
   const vault = useActiveVaultEntity();
   const [merchants, setMerchants] = useState<Record<string, any>[]>(DEMO_MERCHANTS);
-  const [agent, setAgent] = useState<Record<string, any> | null>(null);
+  const [agents, setAgents] = useState<Record<string, any>[]>([]);
+  const [agentId, setAgentId] = useState("");
   const [status, setStatus] = useState<string>("");
 
   useEffect(() => {
@@ -35,7 +36,11 @@ export default function CommercePage() {
       const merchantData = merchantResult?.data ?? merchantResult;
       const agentData = agentResult?.data ?? agentResult;
       if (merchantData?.ok && merchantData.data.length > 0) setMerchants(merchantData.data);
-      if (agentData?.ok && agentData.data.length > 0) setAgent(agentData.data[0]);
+      if (agentData?.ok && agentData.data.length > 0) {
+        const activeAgents = agentData.data.filter((agent: Record<string, any>) => agent.status === "active");
+        setAgents(activeAgents);
+        setAgentId((current) => current || activeAgents[0]?.id || "");
+      }
     };
     void load();
   }, [vault?.id]);
@@ -47,7 +52,7 @@ export default function CommercePage() {
       const client = getBase44Client();
       const result = await client.functions.invoke("createSpendIntent", {
         vault_id: vault.id,
-        agent_id: agent?.id ?? "",
+        agent_id: agentId,
         intent_type: merchant.category === "agent" ? "agent_payment" : merchant.category === "rwa" ? "rwa_purchase" : "purchase",
         description: merchant.description,
         token: active.mockUSD,
@@ -72,5 +77,5 @@ export default function CommercePage() {
     }
   };
 
-  return <div className="max-w-[1100px] px-8 py-8"><div><h1 className="font-heading text-heading text-aubergine" style={{fontWeight: 350}}>Spenda Commerce</h1><p className="mt-1 text-[15px] text-fog">Real BOT Chain payment authorization with simulated merchant fulfillment.</p></div><div className="mt-5"><Chip tone="outline">Merchant Sandbox</Chip></div>{status && <p className="mt-4 rounded-[12px] border border-ash bg-bone px-4 py-3 text-body-sm text-fog">{status}</p>}<div className="mt-8 grid gap-4 md:grid-cols-2">{merchants.map((merchant) => <Panel key={merchant.merchant_id} title={merchant.display_name} subtitle={merchant.category}><p className="text-body-sm text-fog">{merchant.description}</p><div className="mt-4 flex items-center justify-between"><span className="text-[15px] tabular-nums text-aubergine">{(Number(merchant.price ?? "0") / 1_000_000).toFixed(2)} mUSD</span><Button variant="primary" size="sm" onClick={() => requestPurchase(merchant)}>Create intent</Button></div></Panel>)}</div></div>;
+  return <div className="max-w-[1100px] px-8 py-8"><div><h1 className="font-heading text-heading text-aubergine" style={{fontWeight: 350}}>Spenda Commerce</h1><p className="mt-1 text-[15px] text-fog">Real BOT Chain payment authorization with simulated merchant fulfillment.</p></div><div className="mt-5 flex flex-wrap items-center gap-3"><Chip tone="outline">Merchant Sandbox</Chip><label className="flex items-center gap-2 text-body-sm text-fog">Paying agent<select className="rounded-[10px] border border-ash bg-bone px-3 py-2 text-obsidian" value={agentId} onChange={(event) => setAgentId(event.target.value)}>{agents.map((agent) => <option key={agent.id} value={agent.id}>{agent.display_name ?? agent.address}</option>)}</select></label></div>{status && <p className="mt-4 rounded-[12px] border border-ash bg-bone px-4 py-3 text-body-sm text-fog">{status}</p>}{agents.length === 0 && <p className="mt-4 rounded-[12px] border border-blush-mist bg-blush-mist/20 px-4 py-3 text-body-sm text-aubergine">Register an active restricted agent before creating a commerce intent.</p>}<div className="mt-8 grid gap-4 md:grid-cols-2">{merchants.map((merchant) => <Panel key={merchant.merchant_id} title={merchant.display_name} subtitle={merchant.category}><p className="text-body-sm text-fog">{merchant.description}</p><div className="mt-4 flex items-center justify-between"><span className="text-[15px] tabular-nums text-aubergine">{(Number(merchant.price ?? "0") / 1_000_000).toFixed(2)} mUSD</span><Button variant="primary" size="sm" onClick={() => requestPurchase(merchant)} disabled={!agentId}>Create intent</Button></div></Panel>)}</div></div>;
 }
