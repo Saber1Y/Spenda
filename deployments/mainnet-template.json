@@ -1,0 +1,16 @@
+{
+  "environment": "mainnet",
+  "chainId": 0,
+  "rpcUrl": "",
+  "bundlerUrl": "",
+  "explorerUrl": "",
+  "entryPoint": "",
+  "supportedToken": "",
+  "vault": "",
+  "paymaster": "",
+  "restrictedAccountFactory": "",
+  "owner": "",
+  "verifyingSigner": "",
+  "deploymentBlock": 0,
+  "notes": "Fill only after BOT Chain mainnet addresses, supported token, owner, and separate paymaster signer are verified."
+}
