@@ -59,3 +59,13 @@ export async function revokeRestrictedAgent(wallet: WalletClient, publicClient: 
   if (receipt.status !== "success") throw new Error("Agent revocation reverted on-chain.");
   return hash;
 }
+
+export async function updateAgentAllowlist(wallet: WalletClient, publicClient: PublicClient, input: {vault: Address; agent: Address; kind: "target" | "token"; address: Address; allowed: boolean}) {
+  const account = wallet.account?.address;
+  if (!account) throw new Error("Connect the vault owner wallet first.");
+  const functionName = input.kind === "target" ? "setAllowedTarget" : "setAllowedToken";
+  const hash = await wallet.writeContract({address: input.vault, abi: vaultAbi, functionName, args: [input.agent, input.address, input.allowed], account, chain: null});
+  const receipt = await publicClient.waitForTransactionReceipt({hash});
+  if (receipt.status !== "success") throw new Error("Allowlist update reverted on-chain.");
+  return hash;
+}
