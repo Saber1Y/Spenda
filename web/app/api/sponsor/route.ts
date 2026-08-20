@@ -9,8 +9,6 @@ import {
   concat,
   slice,
   toHex,
-  toBytes,
-  keccak256,
   rpcSchema,
   type Address,
   type Hex,
@@ -19,7 +17,7 @@ import {
 import {privateKeyToAccount} from "viem/accounts";
 import {sponsor, type SignerConfig} from "@/lib/sponsor/signer";
 import {toPacked, type UserOpFields} from "@/lib/sponsor/userOp";
-import {CONTRACTS, DEMO} from "@/lib/contracts";
+import {CONTRACTS} from "@/lib/contracts";
 import type {BundlerRpcSchema, UnpackedUserOp} from "@/lib/bundlerSchema";
 
 export const runtime = "nodejs"; // never edge — needs process.env secrets + node crypto
@@ -97,13 +95,13 @@ async function prepareIntentExecution(intentId: unknown, authorization: string |
   return response.ok && payload?.ok ? {execution: payload} as const : {error: payload?.error ?? "intent_preparation_failed", status: response.status || 502} as const;
 }
 
-async function finalizeIntentExecution(intentId: string, userOpHash: string, authorization: string) {
+async function finalizeIntentExecution(intentId: string, attemptId: string, userOpHash: string, authorization: string) {
   const appId = process.env.NEXT_PUBLIC_BASE44_APP_ID;
   if (!appId) return;
   await fetch(`https://base44.app/api/apps/${appId}/functions/finalizeIntentExecution`, {
     method: "POST",
     headers: {"Content-Type": "application/json", Authorization: authorization, "X-App-Id": appId},
-    body: JSON.stringify({intent_id: intentId, user_op_hash: userOpHash}),
+    body: JSON.stringify({intent_id: intentId, attempt_id: attemptId, user_op_hash: userOpHash}),
     cache: "no-store",
   });
 }
@@ -194,14 +192,13 @@ export async function POST(req: NextRequest) {
   }
   const b = body as Record<string, unknown>;
   const authorization = req.headers.get("authorization");
-  const intentPreparation = b.intentId
-    ? await prepareIntentExecution(b.intentId, authorization)
-    : null;
-  if (intentPreparation && "error" in intentPreparation) {
+  if (!b.intentId) return NextResponse.json({error: "intent_id_required"}, {status: 400});
+  const intentPreparation = await prepareIntentExecution(b.intentId, authorization);
+  if ("error" in intentPreparation) {
     return NextResponse.json({error: intentPreparation.error}, {status: intentPreparation.status});
   }
-  const execution = intentPreparation?.execution;
-  const amount = parseAmount(execution?.amount ?? b.amountBaseUnits);
+  const execution = intentPreparation.execution;
+  const amount = parseAmount(execution.amount);
   if (amount === null) {
     return NextResponse.json({error: "invalid_amount", message: "amountBaseUnits must be a positive integer."}, {status: 400});
   }
@@ -215,19 +212,19 @@ export async function POST(req: NextRequest) {
   }
 
   // Support dynamic vault/paymaster/agent from request body (deployed vault flow)
-  const agentValue = execution?.agent ?? b.agent;
-  const vaultValue = execution?.vault ?? b.vault;
-  const tokenValue = execution?.token ?? b.mockUSD;
-  const recipientValue = execution?.recipient ?? b.vendor;
+  const agentValue = execution.agent;
+  const vaultValue = execution.vault;
+  const tokenValue = execution.token;
+  const recipientValue = execution.recipient;
   if (![agentValue, vaultValue, tokenValue, recipientValue].every((value) => typeof value === "string" && isAddress(value))) {
     return NextResponse.json({error: "invalid_execution_addresses"}, {status: 400});
   }
   const agentAddr = agentValue as Address;
   const vaultAddr = vaultValue as Address;
-  const paymasterAddr = (typeof b.paymaster === "string" && b.paymaster.startsWith("0x") ? b.paymaster : CONTRACTS.paymaster) as Address;
+  const paymasterAddr = CONTRACTS.paymaster as Address;
   const mockUSDAddr = tokenValue as Address;
   const vendorAddr = recipientValue as Address;
-  if (execution && typeof execution.action_id !== "string") {
+  if (typeof execution.action_id !== "string") {
     return NextResponse.json({error: "invalid_execution_action_id"}, {status: 400});
   }
 
@@ -239,9 +236,7 @@ export async function POST(req: NextRequest) {
     const nonce = (await rpc.readContract({address: EP, abi: getNonceAbi, functionName: "getNonce", args: [agent, 0n]})) as bigint;
 
     // fresh actionId so the CAP/DAILY-CAP is the reason, never dedup
-    const actionId = execution?.action_id
-      ? execution.action_id as Hex
-      : keccak256(toBytes(`${agent}:${nonce}:${Date.now()}:${Math.random()}`));
+    const actionId = execution.action_id as Hex;
     const inner = encodeFunctionData({abi: executeSpendAbi, functionName: "executeSpend", args: [mockUSDAddr, vendorAddr, amount, "0x", actionId]});
     const callData = encodeFunctionData({abi: executeAbi, functionName: "execute", args: [vaultAddr, 0n, inner]});
 
@@ -297,7 +292,7 @@ export async function POST(req: NextRequest) {
     };
 
     const sent = await bundler.request({method: "eth_sendUserOperation", params: [unpacked, EP]});
-    if (execution && authorization) await finalizeIntentExecution(execution.intent_id, sent, authorization);
+    if (authorization) await finalizeIntentExecution(execution.intent_id, execution.attempt_id, sent, authorization);
     return NextResponse.json({userOpHash: sent, amountBaseUnits: amount.toString()});
   } catch (e) {
     const err = e as {details?: string; shortMessage?: string; message?: string};
