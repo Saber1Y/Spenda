@@ -133,3 +133,10 @@ export function useBudgetEntities(vaultId?: string) {
     [vaultId],
   );
 }
+
+export function useAgentAllowlistEntities(vaultId?: string, agentAddress?: string) {
+  return useEntityList(
+    () => vaultId && agentAddress ? queryEntities("AllowlistEntry", {vault_id: vaultId, agent_address: agentAddress}, "-created_at", 100) : Promise.resolve([]),
+    [vaultId, agentAddress],
+  );
+}
