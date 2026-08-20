@@ -17,3 +17,5 @@ export const DEMO = {
 };
 
 export const MUSD_DECIMALS = 6;
+
+export const DEPLOYMENT_MANIFEST = "deployments/testnet-968.json";
