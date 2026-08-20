@@ -52,6 +52,16 @@ contract BOTSpendVault {
     event AgentActionBlocked(
         address indexed agent, address indexed target, address indexed token, uint256 amount, string reason
     );
+    /// @notice Correlates every blocked decision with the submitted intent/action.
+    event AgentActionDecision(
+        address indexed agent,
+        address indexed target,
+        address indexed token,
+        uint256 amount,
+        bytes32 actionId,
+        bool approved,
+        string reason
+    );
     event ReceiptIssued(
         address indexed agent,
         address indexed target,
@@ -152,22 +162,27 @@ contract BOTSpendVault {
         // ---- checks (no revert; emit + return false) ----
         if (!p.active) {
             emit AgentActionBlocked(msg.sender, target, token, amount, "agent not active");
+            emit AgentActionDecision(msg.sender, target, token, amount, actionId, false, "agent not active");
             return false;
         }
         if (p.expiry != 0 && block.timestamp > p.expiry) {
             emit AgentActionBlocked(msg.sender, target, token, amount, "policy expired");
+            emit AgentActionDecision(msg.sender, target, token, amount, actionId, false, "policy expired");
             return false;
         }
         if (!allowedToken[msg.sender][token]) {
             emit AgentActionBlocked(msg.sender, target, token, amount, "token not allowlisted");
+            emit AgentActionDecision(msg.sender, target, token, amount, actionId, false, "token not allowlisted");
             return false;
         }
         if (!allowedTarget[msg.sender][target]) {
             emit AgentActionBlocked(msg.sender, target, token, amount, "target not allowlisted");
+            emit AgentActionDecision(msg.sender, target, token, amount, actionId, false, "target not allowlisted");
             return false;
         }
         if (amount > p.maxPerTx) {
             emit AgentActionBlocked(msg.sender, target, token, amount, "exceeds maxPerTx");
+            emit AgentActionDecision(msg.sender, target, token, amount, actionId, false, "exceeds maxPerTx");
             return false;
         }
 
@@ -179,10 +194,12 @@ contract BOTSpendVault {
         }
         if (spent + amount > p.dailyCap) {
             emit AgentActionBlocked(msg.sender, target, token, amount, "exceeds dailyCap");
+            emit AgentActionDecision(msg.sender, target, token, amount, actionId, false, "exceeds dailyCap");
             return false;
         }
         if (usedAction[actionId]) {
             emit AgentActionBlocked(msg.sender, target, token, amount, "duplicate action");
+            emit AgentActionDecision(msg.sender, target, token, amount, actionId, false, "duplicate action");
             return false;
         }
 
@@ -202,6 +219,7 @@ contract BOTSpendVault {
         }
 
         emit AgentActionApproved(msg.sender, target, token, amount, actionId);
+        emit AgentActionDecision(msg.sender, target, token, amount, actionId, true, "approved");
         emit ReceiptIssued(msg.sender, target, token, amount, actionId, block.timestamp);
         return true;
     }

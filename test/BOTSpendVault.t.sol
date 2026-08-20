@@ -36,6 +36,15 @@ contract BOTSpendVaultTest is Test {
     event AgentActionBlocked(
         address indexed agent, address indexed target, address indexed token, uint256 amount, string reason
     );
+    event AgentActionDecision(
+        address indexed agent,
+        address indexed target,
+        address indexed token,
+        uint256 amount,
+        bytes32 actionId,
+        bool approved,
+        string reason
+    );
     event ReceiptIssued(
         address indexed agent,
         address indexed target,

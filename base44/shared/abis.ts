@@ -10,6 +10,7 @@ export const vaultAbi = [
   "function revokeAgent(address agent)",
   "event AgentActionApproved(address indexed agent,address indexed target,address indexed token,uint256 amount,bytes32 actionId)",
   "event AgentActionBlocked(address indexed agent,address indexed target,address indexed token,uint256 amount,string reason)",
+  "event AgentActionDecision(address indexed agent,address indexed target,address indexed token,uint256 amount,bytes32 actionId,bool approved,string reason)",
   "event ReceiptIssued(address indexed agent,address indexed target,address token,uint256 amount,bytes32 actionId,uint256 timestamp)",
   "event VaultFunded(address indexed from,uint256 amount)",
   "event PolicyCreated(address indexed agent,uint128 maxPerTx,uint128 dailyCap,uint64 expiry,bool active)",
