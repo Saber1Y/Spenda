@@ -3,6 +3,7 @@
 import {useAccount} from "wagmi";
 import {getActiveContracts} from "@/lib/contracts";
 import {useVaultState} from "@/lib/hooks";
+import {useActiveVaultEntity, useBudgetEntities} from "@/lib/base44-hooks";
 import {isSameAddress, formatMusd, formatBot, truncateAddress} from "@/lib/format";
 import {explorerAddress} from "@/lib/chain";
 import {Chip, CopyChip, TxChip} from "@/components/ui/Chip";
@@ -14,6 +15,8 @@ export default function AgentsPage() {
   const active = getActiveContracts();
   const agent = active.agent;
   const {data: state, loading, refetch} = useVaultState(agent);
+  const vault = useActiveVaultEntity();
+  const {data: budgets} = useBudgetEntities(vault?.id);
   const {address, isConnected} = useAccount();
 
   return (
@@ -114,6 +117,18 @@ export default function AgentsPage() {
             </div>
           </div>
         </div>
+      </div>
+      <div className="mt-6 rounded-[16px] border border-ash bg-bone p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-[17px] font-medium text-obsidian">Authorization budgets</h2>
+            <p className="mt-1 text-[13px] text-fog">Budgets are limits on the vault, not custodial balances.</p>
+          </div>
+          <Button variant="secondary" size="sm" onClick={() => window.location.reload()}>Refresh</Button>
+        </div>
+        {budgets?.length ? (
+          <div className="mt-5 overflow-x-auto"><table className="w-full text-left"><thead><tr className="border-b border-ash"><th className="pb-3 text-caption text-fog">Agent</th><th className="pb-3 text-caption text-fog">Daily cap</th><th className="pb-3 text-caption text-fog">Spent</th><th className="pb-3 text-caption text-fog">Remaining</th><th className="pb-3 text-caption text-fog">Max tx</th></tr></thead><tbody className="divide-y divide-ash/70">{budgets.map((budget) => <tr key={budget.id}><td className="py-3 text-body-sm text-obsidian">{budget.display_name ?? truncateAddress(budget.agent_address)}</td><td className="py-3 text-body-sm tabular-nums">{formatMusd(BigInt(budget.daily_cap ?? "0"))} mUSD</td><td className="py-3 text-body-sm tabular-nums">{formatMusd(BigInt(budget.spent_today ?? "0"))} mUSD</td><td className="py-3 text-body-sm tabular-nums text-mint-signal">{formatMusd(BigInt(budget.remaining_daily ?? "0"))} mUSD</td><td className="py-3 text-body-sm tabular-nums">{formatMusd(BigInt(budget.max_per_transaction ?? "0"))} mUSD</td></tr>)}</tbody></table></div>
+        ) : <p className="mt-5 text-body-sm text-fog">Run budget synchronization after registering more than one agent.</p>}
       </div>
     </div>
   );
