@@ -20,6 +20,9 @@
     "validation_errors": {"type": "array", "items": {"type": "string"}}
     ,"execution_started_at": {"type": "string", "format": "date-time"}
     ,"execution_started_by": {"type": "string"}
+    ,"execution_attempt_id": {"type": "string"}
+    ,"execution_lease_expires_at": {"type": "string", "format": "date-time"}
+    ,"execution_failure": {"type": "string"}
     ,"user_op_hash": {"type": "string"}
   },
   "required": ["vault_id", "agent_id", "intent_type", "description", "token", "amount", "expires_at", "status", "action_id"],
