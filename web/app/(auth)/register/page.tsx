@@ -7,6 +7,7 @@ import {getBase44Client} from "@/lib/base44";
 import {loginWithGoogle} from "@/lib/auth";
 import {Logo} from "@/components/ui/Logo";
 import {Button} from "@/components/ui/Button";
+import {WalletAuthButton} from "@/components/WalletAuthButton";
 
 type Step = "register" | "verify";
 
@@ -171,6 +172,7 @@ export default function RegisterPage() {
               </svg>
               Continue with Google
             </Button>
+            <div className="flex justify-center"><WalletAuthButton /></div>
           </>
         )}
 

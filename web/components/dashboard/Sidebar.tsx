@@ -6,6 +6,7 @@ import { useAccount, useConnect } from "wagmi";
 import { Dot } from "@/components/ui/Icons";
 import { truncateAddress } from "@/lib/format";
 import {loginWithGoogle} from "@/lib/auth";
+import {WalletAuthButton} from "@/components/WalletAuthButton";
 import Image from "next/image";
 
 const NAV_ITEMS = [
@@ -262,6 +263,7 @@ export function Sidebar({user}: SidebarProps) {
             Sign in with Google
           </button>
         )}
+        <WalletAuthButton compact />
       </div>
     </aside>
   );

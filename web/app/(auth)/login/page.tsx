@@ -7,6 +7,7 @@ import {getBase44Client} from "@/lib/base44";
 import {loginWithGoogle} from "@/lib/auth";
 import {Logo} from "@/components/ui/Logo";
 import {Button} from "@/components/ui/Button";
+import {WalletAuthButton} from "@/components/WalletAuthButton";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -105,6 +106,7 @@ export default function LoginPage() {
           </svg>
           Continue with Google
         </Button>
+        <div className="flex justify-center"><WalletAuthButton /></div>
 
         <p className="text-center text-body-sm text-fog">
           Don&rsquo;t have an account?{" "}
