@@ -101,18 +101,19 @@ Deno.serve(async (req) => {
     if (errors.length > 0) return Response.json({ok: false, error: "invalid_intent", details: errors}, {status: 400});
 
     const vaults = await base44.asServiceRole.entities.Vault.filter({id: vault_id});
-    if (vaults.length === 0 || vaults[0].contract_address.toLowerCase() !== CONTRACTS.vault.toLowerCase()) {
+    if (vaults.length === 0 || !isAddress(vaults[0].contract_address)) {
       return Response.json({ok: false, error: "vault_not_authorized"}, {status: 403});
     }
+    const vaultAddress = vaults[0].contract_address;
     const agents = await base44.asServiceRole.entities.Agent.filter({id: agent_id, vault_id});
     if (agents.length === 0 || agents[0].status !== "active") return Response.json({ok: false, error: "agent_not_authorized"}, {status: 403});
     const agentAddress = agents[0].address;
     const [policyResult, remainingResult, targetResult, tokenResult, balanceResult] = await Promise.all([
-      ethCall(CONTRACTS.vault, encodeCall(GET_POLICY_SEL, agentAddress)),
-      ethCall(CONTRACTS.vault, encodeCall(REMAINING_DAILY_SEL, agentAddress)),
-      ethCall(CONTRACTS.vault, encodeCall(ALLOWED_TARGET_SEL, agentAddress, recipient)),
-      ethCall(CONTRACTS.vault, encodeCall(ALLOWED_TOKEN_SEL, agentAddress, token)),
-      ethCall(token, encodeCall(BALANCE_OF_SEL, CONTRACTS.vault)),
+      ethCall(vaultAddress, encodeCall(GET_POLICY_SEL, agentAddress)),
+      ethCall(vaultAddress, encodeCall(REMAINING_DAILY_SEL, agentAddress)),
+      ethCall(vaultAddress, encodeCall(ALLOWED_TARGET_SEL, agentAddress, recipient)),
+      ethCall(vaultAddress, encodeCall(ALLOWED_TOKEN_SEL, agentAddress, token)),
+      ethCall(token, encodeCall(BALANCE_OF_SEL, vaultAddress)),
     ]);
     const amountBigInt = BigInt(amount);
     const maxPerTransaction = word(policyResult, 0);
