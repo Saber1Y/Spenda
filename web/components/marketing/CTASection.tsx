@@ -8,11 +8,10 @@ export function CTASection() {
           className="mx-auto max-w-[18ch] font-heading text-heading leading-tight text-obsidian sm:text-heading-lg sm:leading-[1.1]"
           style={{fontWeight: 350}}
         >
-          A wallet your agent can&rsquo;t drain.
+          Agents get autonomy. You keep custody.
         </h2>
         <p className="mx-auto mt-6 max-w-[52ch] text-body text-fog">
-          The Base44 control plane syncs vault state, policy, allowlists, transactions and audit logs from
-          on-chain into queryable entities. Watch everything live from the deployed contracts on BOT Chain 968.
+          Inspect intents, agent budgets, approvals, risk decisions and chain-derived receipts from the restricted BOT Chain testnet deployment.
         </p>
         <div className="mt-10 flex justify-center">
           <LinkButton href="/dashboard" variant="primary" size="md">

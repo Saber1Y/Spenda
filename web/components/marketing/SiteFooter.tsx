@@ -7,6 +7,7 @@ const links = [
   { label: "Vault contract", href: explorerAddress(CONTRACTS.vault) },
   { label: "Paymaster", href: explorerAddress(CONTRACTS.paymaster) },
   { label: "BOTScan", href: "https://scan.bohr.life" },
+  { label: "Mainnet USDT", href: "https://scan.botchain.ai/address/0xaBabc7Ddc03e501d190C676BF3d92ef0e6e87a3C" },
 ];
 
 export function SiteFooter() {
@@ -24,7 +25,7 @@ export function SiteFooter() {
           />
 
           <p className="mt-3 max-w-[40ch] text-caption text-paper-white/50">
-            Policy-checked, gasless spend vaults for autonomous agents.
+            Policy-controlled USDT spending for autonomous agents. BOT pays gas; agents hold nothing.
           </p>
         </div>
         <nav className="flex flex-wrap gap-x-6 gap-y-2">

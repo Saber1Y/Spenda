@@ -5,6 +5,7 @@ import { LinkButton } from "@/components/ui/Button";
 const links = [
   { label: "The fences", href: "#fences" },
   { label: "How it works", href: "#how" },
+  { label: "Mainnet", href: "#mainnet" },
   { label: "Live proof", href: "#proof" },
 ];
 
