@@ -37,9 +37,9 @@ function FenceCard({
 
 export function TwoFences() {
   return (
-    <Section tone="dark" id="fences">
+    <Section tone="dark" id="security">
       <div className="max-w-[52ch]">
-        <Eyebrow>The architecture</Eyebrow>
+        <Eyebrow>Security model</Eyebrow>
         <h2 className="mt-4 font-heading text-heading leading-tight text-obsidian sm:text-heading-lg sm:leading-[1.1]" style={{fontWeight: 350}}>
           Authorization fails closed at every layer.
         </h2>
@@ -49,14 +49,14 @@ export function TwoFences() {
       </div>
 
       <div className="mt-12 grid gap-6 lg:grid-cols-2">
-        <FenceCard index="Boundary 1" kicker="Restricted ERC-4337 account" title="It cannot call around the vault" icon={<Bolt />}>
+        <div className="marketing-reveal"><FenceCard index="Boundary 1" kicker="Restricted ERC-4337 account" title="It cannot call around the vault" icon={<Bolt />}>
           The account binds to one vault and one paymaster. It rejects direct owner execution, arbitrary targets,
           native value and every selector except the vault&rsquo;s spend request.
-        </FenceCard>
-        <FenceCard index="Boundary 2" kicker="USDT vault policy" title="Every payment is independently checked" icon={<Shield />}>
+        </FenceCard></div>
+        <div className="marketing-reveal"><FenceCard index="Boundary 2" kicker="USDT vault policy" title="Every payment is independently checked" icon={<Shield />}>
           The vault checks agent status, expiry, token and target allowlists, per-transaction cap, daily cap and action
           replay before transferring USDT. Blocked requests emit evidence and move nothing.
-        </FenceCard>
+        </FenceCard></div>
       </div>
     </Section>
   );

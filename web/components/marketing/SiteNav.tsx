@@ -3,7 +3,7 @@ import Image from "next/image";
 import { LinkButton } from "@/components/ui/Button";
 
 const links = [
-  { label: "The fences", href: "#fences" },
+  { label: "Security model", href: "#security" },
   { label: "How it works", href: "#how" },
   { label: "Mainnet", href: "#mainnet" },
   { label: "Live proof", href: "#proof" },
