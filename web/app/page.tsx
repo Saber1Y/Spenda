@@ -2,6 +2,7 @@ import {SiteNav} from "@/components/marketing/SiteNav";
 import {Hero} from "@/components/marketing/Hero";
 import {ProblemSection} from "@/components/marketing/ProblemSection";
 import {TwoFences} from "@/components/marketing/TwoFences";
+import {ProductFlow} from "@/components/marketing/ProductFlow";
 import {HowItWorks} from "@/components/marketing/HowItWorks";
 import {LiveProof} from "@/components/marketing/LiveProof";
 import {MainnetReadiness} from "@/components/marketing/MainnetReadiness";
@@ -15,6 +16,7 @@ export default function Home() {
       <Hero />
       <ProblemSection />
       <TwoFences />
+      <ProductFlow />
       <HowItWorks />
       <MainnetReadiness />
       <LiveProof />
