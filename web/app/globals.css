@@ -105,3 +105,67 @@ h1, h2, h3, h4, h5, h6 {
   outline-offset: 2px;
   border-radius: 4px;
 }
+
+/* Marketing motion and visual layer. Deliberately scoped so the dashboard stays still. */
+.hero-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(640px 420px at 76% 26%, rgba(254, 106, 0, 0.16), transparent 65%),
+    radial-gradient(900px 560px at 12% 88%, rgba(254, 106, 0, 0.08), transparent 62%);
+}
+
+.hero-visual-enter {
+  animation: marketing-enter 700ms cubic-bezier(.23,1,.32,1) both;
+}
+
+.marketing-reveal {
+  animation: marketing-reveal linear both;
+  animation-timeline: view();
+  animation-range: entry 10% cover 28%;
+}
+
+.diagram-step {
+  background: rgba(30, 30, 36, 0.72);
+  transition: border-color 0.45s ease, box-shadow 0.45s ease, transform 0.45s ease;
+}
+
+.diagram-step[data-state="idle"] {
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.diagram-step[data-state="active"] {
+  border-color: rgba(254, 106, 0, 0.85);
+  box-shadow: 0 0 0 1px rgba(254, 106, 0, 0.35), 0 14px 44px rgba(254, 106, 0, 0.18);
+  transform: translateY(-2px);
+}
+
+.diagram-step[data-state="done"] {
+  border-color: rgba(46, 192, 139, 0.45);
+}
+
+.narration-enter {
+  animation: narration-enter 360ms cubic-bezier(.23,1,.32,1) both;
+}
+
+@keyframes marketing-enter {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes narration-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes marketing-reveal {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-visual-enter,
+  .marketing-reveal,
+  .narration-enter { animation: none; }
+}

@@ -33,7 +33,7 @@ export function HowItWorks() {
 
       <div className="mt-12 grid gap-px overflow-hidden border border-white/10 bg-white/10 md:grid-cols-2 lg:grid-cols-4">
         {steps.map((s) => (
-          <div key={s.n} className="flex flex-col gap-4 bg-obsidian p-6 sm:p-7">
+          <div key={s.n} className="marketing-reveal flex flex-col gap-4 bg-obsidian p-6 sm:p-7" style={{animationDelay: `${Number(s.n) * 55}ms`}}>
             <span className="font-heading text-heading text-base-orange" style={{fontWeight: 350}}>
               {s.n}
             </span>
