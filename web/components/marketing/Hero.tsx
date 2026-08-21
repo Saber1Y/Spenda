@@ -12,10 +12,7 @@ export function Hero() {
     <section className="relative overflow-hidden bg-obsidian px-6">
       <div className="relative mx-auto grid max-w-[1200px] gap-12 pb-20 pt-14 lg:grid-cols-[0.95fr_1.05fr] lg:items-center lg:gap-16 lg:pb-28 lg:pt-24">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-pill border border-white/15 bg-white/5 px-3.5 py-2 text-caption text-paper-white/75">
-            <span className="h-2 w-2 rounded-full bg-base-orange" />
-            USDT spending · Agent guardrails · Mainnet-ready
-          </div>
+       
 
           <h1
             className="mt-6 max-w-[17ch] text-balance font-heading text-[44px] leading-[1.05] text-paper-white sm:text-[62px]"

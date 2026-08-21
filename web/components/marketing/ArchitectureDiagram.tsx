@@ -71,7 +71,6 @@ export function ArchitectureDiagram() {
       </ol>
 
       <div className="mt-5 flex items-start gap-3 rounded-2xl border border-white/10 bg-obsidian/80 px-4 py-3.5">
-        <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-base-orange" />
         <p key={active} className="narration-enter text-[13px] leading-snug text-paper-white/85 sm:text-body-sm">
           {narrations[active]}
         </p>
