@@ -1,25 +1,23 @@
 import { LinkButton } from "@/components/ui/Button";
-import { Chip } from "@/components/ui/Chip";
-import { Dot, ArrowUpRight } from "@/components/ui/Icons";
+import { ArrowUpRight } from "@/components/ui/Icons";
 
 export function Hero() {
   return (
-    <section className="bg-obsidian px-6">
-      <div className="mx-auto max-w-[1200px] pb-20 pt-16 text-center sm:pb-28 sm:pt-24">
+    <section className="relative overflow-hidden bg-obsidian px-6">
+      <div className="mx-auto max-w-[1200px] pb-16 pt-14 text-center sm:pb-20 sm:pt-20">
+        <div className="mx-auto mb-6 inline-flex items-center gap-2 border border-white/15 bg-white/5 px-3 py-2 text-caption text-paper-white/70">
+          <span className="h-2 w-2 rounded-full bg-base-orange" />
+          Mainnet-ready architecture · USDT spending · BOT gas
+        </div>
         <h1
-          className="mx-auto max-w-[16ch] font-heading text-[44px] leading-[1.05] text-paper-white sm:text-[64px]"
-          style={{ fontWeight: 350, letterSpacing: "-0.03em" }}
+          className="mx-auto max-w-[17ch] text-balance font-heading text-[44px] leading-[1.05] text-paper-white sm:text-[62px]"
+          style={{ fontWeight: 380, letterSpacing: "-0.03em" }}
         >
-          Give your AI agent a wallet it can&rsquo;t drain.
+          Give your agent a USDT budget. Not your wallet.
         </h1>
 
-        <p className="mx-auto mt-7 max-w-[60ch] text-subheading text-paper-white/60">
-          Spenda doesn&rsquo;t make agents smarter. It makes them safe to fund -
-          the agent holds nothing, a sponsor policy fences it to the vault at
-          the gas layer, and the vault enforces caps, allowlists and receipts
-          on-chain. The Base44 control plane syncs every on-chain state change
-          into queryable entities so the dashboard, audit logs, and analytics
-          are always live.
+        <p className="mx-auto mt-6 max-w-[54ch] text-subheading text-paper-white/65">
+          Agents request economic actions. Spenda validates intent, budget, risk, approval and policy before the vault moves funds.
         </p>
 
         <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
@@ -36,7 +34,23 @@ export function Hero() {
             <ArrowUpRight width={16} height={16} />
           </LinkButton>
         </div>
+
+        <div className="mx-auto mt-12 grid max-w-[900px] overflow-hidden border border-white/10 bg-white/[0.04] text-left md:grid-cols-[1fr_auto_1fr_auto_1fr]">
+          <HeroNode label="User funds" value="USDT vault" detail="Owner controlled" />
+          <FlowArrow />
+          <HeroNode label="Agent authority" value="Spend intent" detail="Zero custody" />
+          <FlowArrow />
+          <HeroNode label="Final boundary" value="Policy engine" detail="Approve · escalate · block" />
+        </div>
       </div>
     </section>
   );
+}
+
+function HeroNode({label, value, detail}: {label: string; value: string; detail: string}) {
+  return <div className="min-w-0 px-5 py-5 sm:px-6"><p className="text-caption text-paper-white/45">{label}</p><p className="mt-1 font-heading text-[20px] text-paper-white" style={{fontWeight: 420}}>{value}</p><p className="mt-1 text-caption text-paper-white/55">{detail}</p></div>;
+}
+
+function FlowArrow() {
+  return <div className="hidden items-center border-x border-white/10 px-3 text-base-orange md:flex" aria-hidden="true">→</div>;
 }

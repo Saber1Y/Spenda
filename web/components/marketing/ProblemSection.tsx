@@ -10,18 +10,17 @@ export function ProblemSection() {
             className="mt-4 font-heading text-heading leading-tight text-obsidian sm:text-heading-lg sm:leading-[1.1]"
             style={{fontWeight: 350}}
           >
-            One bad loop and the wallet is empty.
+            Autonomy without custody controls is a drain path.
           </h2>
         </div>
         <div className="space-y-5 text-body text-fog">
           <p>
-            Autonomous agents need to move money to act - pay a vendor, settle a task, swap on a DEX. Hand one an
-            unrestricted key and a single prompt injection, hallucinated action, or runaway loop can drain it.
+            Autonomous agents need to pay vendors, buy compute and settle services. An unrestricted wallet turns one
+            prompt injection, hallucinated action or runaway loop into direct access to user funds.
           </p>
           <p>
-            Humans need <span className="text-obsidian">caps, allowlists, dedup and receipts</span> - enforced
-            on-chain, not by app-layer goodwill. Spenda gives the agent a wallet that holds nothing and can only
-            ever move value inside policy.
+            Spenda keeps USDT in an owner-controlled vault. Restricted agent accounts hold nothing and can request only
+            the vault&rsquo;s spend function, where caps, allowlists, expiry and replay protection execute on-chain.
           </p>
         </div>
       </div>
