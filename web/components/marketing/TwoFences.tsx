@@ -41,24 +41,21 @@ export function TwoFences() {
       <div className="max-w-[52ch]">
         <Eyebrow>The architecture</Eyebrow>
         <h2 className="mt-4 font-heading text-heading leading-tight text-obsidian sm:text-heading-lg sm:leading-[1.1]" style={{fontWeight: 350}}>
-          Two independent fences.
+          Authorization fails closed at every layer.
         </h2>
         <p className="mt-5 text-body text-fog">
-          Neither substitutes the other. One stops off-policy actions from ever broadcasting; the other polices
-          every spend that does.
+          The restricted account constrains what an agent can call. The vault independently decides whether value moves.
         </p>
       </div>
 
       <div className="mt-12 grid gap-6 lg:grid-cols-2">
-        <FenceCard index="Fence 1" kicker="Gas layer - BOT Chain native" title="It can&rsquo;t even broadcast" icon={<Bolt />}>
-          The agent&rsquo;s account holds zero BOT. Every action is a sponsored UserOp, and the paymaster&rsquo;s
-          off-chain signer only signs calls into the vault. An off-policy action is never sponsored - with no gas,
-          it never enters a bundle.
+        <FenceCard index="Boundary 1" kicker="Restricted ERC-4337 account" title="It cannot call around the vault" icon={<Bolt />}>
+          The account binds to one vault and one paymaster. It rejects direct owner execution, arbitrary targets,
+          native value and every selector except the vault&rsquo;s spend request.
         </FenceCard>
-        <FenceCard index="Fence 2" kicker="Contract layer - the vault" title="It only moves inside policy" icon={<Shield />}>
-          For any call that does get sponsored, the vault checks the full policy - active, not expired, token
-          allowed, target allowed, per-tx cap, daily cap, dedup - before moving a cent. Blocked actions emit an
-          on-chain record and move nothing.
+        <FenceCard index="Boundary 2" kicker="USDT vault policy" title="Every payment is independently checked" icon={<Shield />}>
+          The vault checks agent status, expiry, token and target allowlists, per-transaction cap, daily cap and action
+          replay before transferring USDT. Blocked requests emit evidence and move nothing.
         </FenceCard>
       </div>
     </Section>
