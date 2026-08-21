@@ -1,56 +1,77 @@
+import Link from "next/link";
 import { LinkButton } from "@/components/ui/Button";
-import { ArrowUpRight } from "@/components/ui/Icons";
+import { ArrowUpRight, Shield } from "@/components/ui/Icons";
+import { explorerAddress } from "@/lib/chain";
+import { CONTRACTS } from "@/lib/contracts";
+import { ArchitectureDiagram } from "./ArchitectureDiagram";
+
+const DOCS_URL = "https://github.com/Saber1Y/Spenda";
 
 export function Hero() {
   return (
     <section className="relative overflow-hidden bg-obsidian px-6">
-      <div className="mx-auto max-w-[1200px] pb-16 pt-14 text-center sm:pb-20 sm:pt-20">
-        <div className="mx-auto mb-6 inline-flex items-center gap-2 border border-white/15 bg-white/5 px-3 py-2 text-caption text-paper-white/70">
-          <span className="h-2 w-2 rounded-full bg-base-orange" />
-          Mainnet-ready architecture · USDT spending · BOT gas
-        </div>
-        <h1
-          className="mx-auto max-w-[17ch] text-balance font-heading text-[44px] leading-[1.05] text-paper-white sm:text-[62px]"
-          style={{ fontWeight: 380, letterSpacing: "-0.03em" }}
-        >
-          Give your agent a USDT budget. Not your wallet.
-        </h1>
+      <div className="hero-glow" aria-hidden="true" />
+      <div className="relative mx-auto grid max-w-[1200px] gap-12 pb-20 pt-14 lg:grid-cols-[0.95fr_1.05fr] lg:items-center lg:gap-16 lg:pb-28 lg:pt-24">
+        <div>
+          <div className="inline-flex items-center gap-2 rounded-pill border border-white/15 bg-white/5 px-3.5 py-2 text-caption text-paper-white/75">
+            <span className="h-2 w-2 rounded-full bg-base-orange" />
+            USDT spending · Agent guardrails · Mainnet-ready
+          </div>
 
-        <p className="mx-auto mt-6 max-w-[54ch] text-subheading text-paper-white/65">
-          Agents request economic actions. Spenda validates intent, budget, risk, approval and policy before the vault moves funds.
-        </p>
-
-        <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <LinkButton href="/dashboard" variant="primary" size="md">
-            Open the dashboard
-          </LinkButton>
-          <LinkButton
-            href="#proof"
-            variant="ghost"
-            size="md"
-            className="text-paper-white hover:bg-white/10"
+          <h1
+            className="mt-6 max-w-[17ch] text-balance font-heading text-[44px] leading-[1.05] text-paper-white sm:text-[62px]"
+            style={{ fontWeight: 380, letterSpacing: "-0.03em" }}
           >
-            See it live
-            <ArrowUpRight width={16} height={16} />
-          </LinkButton>
+            Give your agent a USDT budget. Not your wallet.
+          </h1>
+
+          <p className="mt-6 max-w-[54ch] text-subheading text-paper-white/65">
+            Agents request economic actions. Spenda checks budget, risk, approval and policy on-chain before a single dollar moves.
+          </p>
+
+          <div className="mt-9 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
+            <LinkButton href="#proof" variant="primary" size="md">
+              See a demo transaction
+            </LinkButton>
+            <LinkButton href={DOCS_URL} external variant="onDark" size="md">
+              Read the docs
+            </LinkButton>
+          </div>
+          <Link
+            href="/dashboard"
+            className="mt-4 inline-flex items-center gap-1.5 text-body-sm text-paper-white/60 transition hover:text-base-orange"
+          >
+            Launch dashboard
+            <ArrowUpRight width={14} height={14} />
+          </Link>
+
+          <div className="mt-9 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-white/10 pt-6 text-caption text-paper-white/60">
+            <a
+              href={explorerAddress(CONTRACTS.vault)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 transition hover:text-paper-white"
+            >
+              <Shield width={14} height={14} className="text-mint-signal" />
+              Contracts verified on BOTScan
+            </a>
+            <span className="inline-flex items-center gap-2">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-mint-signal opacity-60 motion-safe:animate-ping" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-mint-signal" />
+              </span>
+              Live on BOT Chain testnet
+            </span>
+            <a href="#proof" className="transition hover:text-paper-white">
+              Real approved + blocked transactions
+            </a>
+          </div>
         </div>
 
-        <div className="mx-auto mt-12 grid max-w-[900px] overflow-hidden border border-white/10 bg-white/[0.04] text-left md:grid-cols-[1fr_auto_1fr_auto_1fr]">
-          <HeroNode label="User funds" value="USDT vault" detail="Owner controlled" />
-          <FlowArrow />
-          <HeroNode label="Agent authority" value="Spend intent" detail="Zero custody" />
-          <FlowArrow />
-          <HeroNode label="Final boundary" value="Policy engine" detail="Approve · escalate · block" />
+        <div className="hero-visual-enter">
+          <ArchitectureDiagram />
         </div>
       </div>
     </section>
   );
-}
-
-function HeroNode({label, value, detail}: {label: string; value: string; detail: string}) {
-  return <div className="min-w-0 px-5 py-5 sm:px-6"><p className="text-caption text-paper-white/45">{label}</p><p className="mt-1 font-heading text-[20px] text-paper-white" style={{fontWeight: 420}}>{value}</p><p className="mt-1 text-caption text-paper-white/55">{detail}</p></div>;
-}
-
-function FlowArrow() {
-  return <div className="hidden items-center border-x border-white/10 px-3 text-base-orange md:flex" aria-hidden="true">→</div>;
 }
