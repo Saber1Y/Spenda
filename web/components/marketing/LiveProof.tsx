@@ -3,19 +3,36 @@
 import {useEffect, useState} from "react";
 import {Eyebrow} from "./Section";
 import {Card} from "@/components/ui/Card";
-import {StateBadge} from "@/components/ui/StateBadge";
+import {Check, Hand} from "@/components/ui/Icons";
 import {TxChip, Chip} from "@/components/ui/Chip";
 import {Skeleton} from "@/components/ui/Row";
 import {fetchProof, fetchRecentActivity, type ProofResult, type ActivityFeedResult} from "@/lib/proof";
 import {formatMusd, truncateHash, truncateAddress} from "@/lib/format";
 import {explorerTx, explorerAddress} from "@/lib/chain";
 
+function LandingBadge({kind}: {kind: "approved" | "blocked"}) {
+  if (kind === "approved") {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-pill bg-obsidian px-3 py-1 text-[13px] leading-none text-paper-white">
+        <Check width={13} height={13} />
+        Approved
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-pill border border-base-orange px-3 py-1 text-[13px] leading-none text-base-orange">
+      <Hand width={13} height={13} />
+      Held
+    </span>
+  );
+}
+
 function ProofColumn({data}: {data: ProofResult | undefined}) {
   const approved = data?.kind === "approved";
   return (
     <Card tone="paper" pad="lg" className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        {data ? <StateBadge kind={data.kind} /> : <Skeleton className="h-6 w-24" />}
+        {data ? <LandingBadge kind={data.kind} /> : <Skeleton className="h-6 w-24" />}
         {data ? (
           <Chip tone="outline">{data.live ? "live read" : "snapshot"}</Chip>
         ) : (
@@ -122,15 +139,6 @@ const SPOTLIGHT_AGENTS = [
   },
 ];
 
-function LiveDot() {
-  return (
-    <span className="relative flex h-2 w-2">
-      <span className="absolute inline-flex h-full w-full rounded-full bg-mint-signal opacity-60 motion-safe:animate-ping" />
-      <span className="relative inline-flex h-2 w-2 rounded-full bg-mint-signal" />
-    </span>
-  );
-}
-
 function ActivityFeed() {
   const [feed, setFeed] = useState<ActivityFeedResult>();
 
@@ -146,8 +154,7 @@ function ActivityFeed() {
     <div className="mt-12 overflow-hidden rounded-card border border-ash bg-paper-white">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-ash px-6 py-4">
         <span className="text-caption uppercase tracking-[0.08em] text-fog">Recent vault decisions</span>
-        <span className="inline-flex items-center gap-2 text-caption text-fog">
-          <LiveDot />
+        <span className="text-caption text-fog">
           {feed ? (feed.live ? "reading BOT Chain" : "snapshot") : "connecting"}
         </span>
       </div>
@@ -163,7 +170,7 @@ function ActivityFeed() {
         <ul className="divide-y divide-ash">
           {feed.entries.map((e) => (
             <li key={`${e.txHash}-${e.logIndex}`} className="flex flex-wrap items-center gap-x-5 gap-y-2 px-6 py-4">
-              <StateBadge kind={e.kind} />
+              <LandingBadge kind={e.kind} />
               <span className="font-mono text-[13px] text-obsidian">{truncateAddress(e.agent)}</span>
               <span className="text-body-sm text-obsidian">{formatMusd(e.amount)} test mUSD</span>
               {e.reason ? <span className="text-caption text-fog">{e.reason}</span> : null}
@@ -190,7 +197,7 @@ function AgentSpotlight() {
           <TxChip href={explorerAddress(a.address)} label={truncateAddress(a.address)} />
           <p className="text-body-sm text-fog">{a.policy}</p>
           <p className="mt-auto inline-flex items-center gap-2 text-caption text-obsidian">
-            <span className="h-1.5 w-1.5 rounded-full bg-mint-signal" />
+            <span className="h-1.5 w-1.5 rounded-full bg-base-orange" />
             0 unauthorized spends
           </p>
         </Card>

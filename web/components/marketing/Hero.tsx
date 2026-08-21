@@ -10,7 +10,6 @@ const DOCS_URL = "https://github.com/Saber1Y/Spenda";
 export function Hero() {
   return (
     <section className="relative overflow-hidden bg-obsidian px-6">
-      <div className="hero-glow" aria-hidden="true" />
       <div className="relative mx-auto grid max-w-[1200px] gap-12 pb-20 pt-14 lg:grid-cols-[0.95fr_1.05fr] lg:items-center lg:gap-16 lg:pb-28 lg:pt-24">
         <div>
           <div className="inline-flex items-center gap-2 rounded-pill border border-white/15 bg-white/5 px-3.5 py-2 text-caption text-paper-white/75">
@@ -52,14 +51,11 @@ export function Hero() {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 transition hover:text-paper-white"
             >
-              <Shield width={14} height={14} className="text-mint-signal" />
+              <Shield width={14} height={14} className="text-base-orange" />
               Contracts verified on BOTScan
             </a>
             <span className="inline-flex items-center gap-2">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full rounded-full bg-mint-signal opacity-60 motion-safe:animate-ping" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-mint-signal" />
-              </span>
+              <Shield width={14} height={14} className="text-base-orange" />
               Live on BOT Chain testnet
             </span>
             <a href="#proof" className="transition hover:text-paper-white">

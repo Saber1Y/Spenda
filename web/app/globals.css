@@ -107,15 +107,6 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Marketing motion and visual layer. Deliberately scoped so the dashboard stays still. */
-.hero-glow {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(640px 420px at 76% 26%, rgba(254, 106, 0, 0.16), transparent 65%),
-    radial-gradient(900px 560px at 12% 88%, rgba(254, 106, 0, 0.08), transparent 62%);
-}
-
 .hero-visual-enter {
   animation: marketing-enter 700ms cubic-bezier(.23,1,.32,1) both;
 }
@@ -142,7 +133,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .diagram-step[data-state="done"] {
-  border-color: rgba(46, 192, 139, 0.45);
+  border-color: rgba(254, 106, 0, 0.35);
 }
 
 .fleet-agent {

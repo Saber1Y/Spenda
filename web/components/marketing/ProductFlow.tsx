@@ -90,13 +90,7 @@ function FleetPanel({ active }: { active: number }) {
     <div className="rounded-card border border-ash bg-paper-white p-6 sm:p-8 lg:sticky lg:top-24">
       <div className="flex items-center justify-between gap-3">
         <span className="text-caption uppercase tracking-[0.08em] text-fog">One vault · every agent</span>
-        <span className="inline-flex items-center gap-2 text-caption text-fog">
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full rounded-full bg-mint-signal opacity-60 motion-safe:animate-ping" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-mint-signal" />
-          </span>
-          Owner custody
-        </span>
+        <span className="text-caption text-fog">Owner custody</span>
       </div>
 
       <div className="mt-5 flex items-center gap-3.5 rounded-2xl border border-base-orange/40 bg-base-orange-light px-4 py-3.5">

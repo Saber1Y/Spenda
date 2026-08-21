@@ -36,14 +36,8 @@ export function ArchitectureDiagram() {
         <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-paper-white/60">
           How a Spenda payment flows
         </span>
-        <span className="flex items-center gap-2">
-          <span className="relative flex h-2.5 w-2.5">
-            <span className="absolute inline-flex h-full w-full rounded-full bg-mint-signal opacity-60 motion-safe:animate-ping" />
-            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-mint-signal" />
-          </span>
-          <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-paper-white/80">
-            Live policy
-          </span>
+        <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-paper-white/80">
+          Live policy
         </span>
       </div>
 
@@ -54,12 +48,8 @@ export function ArchitectureDiagram() {
               <div className="flex items-center justify-between">
                 <span
                   className={`font-heading text-[13px] ${
-                    stateOf(i) === "active"
-                      ? "text-base-orange"
-                      : stateOf(i) === "done"
-                        ? "text-mint-signal"
-                        : "text-paper-white/50"
-                  }`}
+                    stateOf(i) === "idle" ? "text-paper-white/50" : "text-base-orange"
+                  } ${stateOf(i) === "done" ? "opacity-60" : ""}`}
                 >
                   {s.n}
                 </span>
@@ -81,7 +71,7 @@ export function ArchitectureDiagram() {
       </ol>
 
       <div className="mt-5 flex items-start gap-3 rounded-2xl border border-white/10 bg-obsidian/80 px-4 py-3.5">
-        <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-base-orange motion-safe:animate-pulse" />
+        <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-base-orange" />
         <p key={active} className="narration-enter text-[13px] leading-snug text-paper-white/85 sm:text-body-sm">
           {narrations[active]}
         </p>
@@ -114,7 +104,7 @@ function Check() {
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
       <path
         d="M2.5 7.5L5.5 10.5L11.5 3.5"
-        stroke="#2ec08b"
+        stroke="#fe6a00"
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"

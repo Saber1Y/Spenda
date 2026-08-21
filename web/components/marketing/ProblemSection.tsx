@@ -65,13 +65,13 @@ function CompareCard({
   return (
     <div
       className={`flex flex-col gap-5 rounded-card border bg-paper-white p-6 sm:p-8 ${
-        risk ? "border-blush-mist" : "border-ash"
+        risk ? "border-ash" : "border-base-orange/40"
       }`}
     >
       <div className="flex items-center gap-3">
         <span
           className={`flex h-8 w-8 items-center justify-center rounded-full text-[13px] font-semibold ${
-            risk ? "bg-blush-mist text-obsidian" : "bg-mint-signal text-paper-white"
+            risk ? "bg-ash text-obsidian" : "bg-base-orange text-paper-white"
           }`}
           aria-hidden="true"
         >
@@ -86,7 +86,7 @@ function CompareCard({
           <li key={item} className="flex items-start gap-3 text-body text-fog">
             <span
               className={`mt-[9px] h-1.5 w-1.5 shrink-0 rounded-full ${
-                risk ? "bg-blush-mist" : "bg-mint-signal"
+                risk ? "bg-ash" : "bg-base-orange"
               }`}
               aria-hidden="true"
             />
@@ -103,7 +103,7 @@ function Stat({ value, label, tone }: { value: string; label: string; tone: "ris
     <div className="bg-paper-white p-6 sm:p-7">
       <div className="flex items-center gap-2.5">
         <span
-          className={`h-2 w-2 rounded-full ${tone === "risk" ? "bg-blush-mist" : "bg-mint-signal"}`}
+          className={`h-2 w-2 rounded-full ${tone === "risk" ? "bg-ash" : "bg-base-orange"}`}
           aria-hidden="true"
         />
         <span
