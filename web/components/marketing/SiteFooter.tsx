@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { explorerAddress } from "@/lib/chain";
 import { CONTRACTS } from "@/lib/contracts";
 import { ArrowUpRight } from "@/components/ui/Icons";
@@ -15,14 +14,9 @@ export function SiteFooter() {
     <footer className="border-t border-white/10 bg-obsidian px-6">
       <div className="mx-auto flex max-w-[1200px] flex-col gap-8 py-12 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <Image
-            src="/spenda-logo.png"
-            alt="Spenda"
-            height={50}
-            width={100}
-            className="rounded-[8px] select-none"
-            draggable={false}
-          />
+          <span className="font-heading text-[22px] tracking-tight text-paper-white" style={{fontWeight: 500}}>
+            Spenda<span className="text-base-orange">.</span>
+          </span>
 
           <p className="mt-3 max-w-[40ch] text-caption text-paper-white/50">
             Policy-controlled USDT spending for autonomous agents. BOT pays gas; agents hold nothing.
