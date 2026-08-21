@@ -145,6 +145,17 @@ h1, h2, h3, h4, h5, h6 {
   border-color: rgba(46, 192, 139, 0.45);
 }
 
+.fleet-agent {
+  border-color: var(--color-ash);
+  background: var(--color-paper-white);
+  transition: border-color 0.45s ease, box-shadow 0.45s ease;
+}
+
+.fleet-agent[data-state="active"] {
+  border-color: rgba(254, 106, 0, 0.6);
+  box-shadow: 0 10px 34px rgba(254, 106, 0, 0.12);
+}
+
 .narration-enter {
   animation: narration-enter 360ms cubic-bezier(.23,1,.32,1) both;
 }
