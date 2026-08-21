@@ -9,8 +9,6 @@ import {Skeleton} from "@/components/ui/Row";
 import {fetchProof, type ProofResult} from "@/lib/proof";
 import {formatMusd, truncateHash} from "@/lib/format";
 import {explorerTx} from "@/lib/chain";
-import {DEMO} from "@/lib/contracts";
-import {truncateAddress} from "@/lib/format";
 
 function ProofColumn({data}: {data: ProofResult | undefined}) {
   const approved = data?.kind === "approved";
@@ -29,7 +27,7 @@ function ProofColumn({data}: {data: ProofResult | undefined}) {
         <span className="text-caption uppercase tracking-[0.08em] text-fog">executeSpend</span>
         {data ? (
           <div className="mt-1 font-heading text-heading-lg leading-none text-obsidian" style={{fontWeight: 350}}>
-            {formatMusd(data.amount)} <span className="text-heading-sm text-fog">mUSD</span>
+             {formatMusd(data.amount)} <span className="text-heading-sm text-fog">test mUSD</span>
           </div>
         ) : (
           <Skeleton className="mt-2 h-12 w-40" />
@@ -51,7 +49,7 @@ function ProofColumn({data}: {data: ProofResult | undefined}) {
         <div className="flex items-center justify-between gap-3">
           <span className="text-fog">Result</span>
           <span className="text-obsidian">
-            {approved ? `vendor received ${data ? formatMusd(data.amount) : "-"} mUSD` : "nothing moved"}
+             {approved ? `vendor received ${data ? formatMusd(data.amount) : "-"} test mUSD` : "nothing moved"}
           </span>
         </div>
         <div className="flex items-center justify-between gap-3">
@@ -86,12 +84,11 @@ export function LiveProof() {
         <div className="max-w-[56ch]">
           <Eyebrow>Live proof · on-chain</Eyebrow>
           <h2 className="mt-4 font-heading text-heading leading-tight text-obsidian sm:text-heading-lg sm:leading-[1.1]" style={{fontWeight: 350}}>
-            Same agent. One variable.
+             Policy outcomes you can inspect.
           </h2>
           <p className="mt-5 text-body text-fog">
-            Two real sponsored actions from agent <span className="text-obsidian">{truncateAddress(DEMO.agent)}</span>,
-            identical but for the amount - 4 mUSD vs 6 mUSD against a 5 mUSD per-tx cap. The difference lives entirely
-            in the events and the untouched balances.
+             Real BOT Chain testnet acceptance transactions show an approved restricted-account payment and a blocked
+             policy request. Both use valueless test mUSD; mainnet settlement is configured for official USDT.
           </p>
         </div>
 
