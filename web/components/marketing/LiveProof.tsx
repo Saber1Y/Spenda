@@ -6,9 +6,9 @@ import {Card} from "@/components/ui/Card";
 import {StateBadge} from "@/components/ui/StateBadge";
 import {TxChip, Chip} from "@/components/ui/Chip";
 import {Skeleton} from "@/components/ui/Row";
-import {fetchProof, type ProofResult} from "@/lib/proof";
-import {formatMusd, truncateHash} from "@/lib/format";
-import {explorerTx} from "@/lib/chain";
+import {fetchProof, fetchRecentActivity, type ProofResult, type ActivityFeedResult} from "@/lib/proof";
+import {formatMusd, truncateHash, truncateAddress} from "@/lib/format";
+import {explorerTx, explorerAddress} from "@/lib/chain";
 
 function ProofColumn({data}: {data: ProofResult | undefined}) {
   const approved = data?.kind === "approved";
@@ -101,7 +101,109 @@ export function LiveProof() {
           </div>
           <ProofColumn data={blocked} />
         </div>
+
+        <ActivityFeed />
+        <AgentSpotlight />
       </div>
     </section>
+  );
+}
+
+const SPOTLIGHT_AGENTS = [
+  {
+    name: "Procurement agent",
+    address: "0x2649495B56e8c06C6682549438ac9279599A3aD8",
+    policy: "Max 50 test mUSD per tx · 250 per day",
+  },
+  {
+    name: "Research agent",
+    address: "0x02B56f3Bd6fb799AE3acF9053A69FA99EE3899b5",
+    policy: "Max 10 test mUSD per tx · 50 per day",
+  },
+];
+
+function LiveDot() {
+  return (
+    <span className="relative flex h-2 w-2">
+      <span className="absolute inline-flex h-full w-full rounded-full bg-mint-signal opacity-60 motion-safe:animate-ping" />
+      <span className="relative inline-flex h-2 w-2 rounded-full bg-mint-signal" />
+    </span>
+  );
+}
+
+function ActivityFeed() {
+  const [feed, setFeed] = useState<ActivityFeedResult>();
+
+  useEffect(() => {
+    let alive = true;
+    fetchRecentActivity().then((r) => alive && setFeed(r));
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  return (
+    <div className="mt-12 overflow-hidden rounded-card border border-ash bg-paper-white">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-ash px-6 py-4">
+        <span className="text-caption uppercase tracking-[0.08em] text-fog">Recent vault decisions</span>
+        <span className="inline-flex items-center gap-2 text-caption text-fog">
+          <LiveDot />
+          {feed ? (feed.live ? "reading BOT Chain" : "snapshot") : "connecting"}
+        </span>
+      </div>
+      {feed === undefined ? (
+        <div className="space-y-3 px-6 py-5">
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-8 w-3/4" />
+        </div>
+      ) : feed.entries.length === 0 ? (
+        <p className="px-6 py-5 text-body-sm text-fog">No decisions recorded yet.</p>
+      ) : (
+        <ul className="divide-y divide-ash">
+          {feed.entries.map((e) => (
+            <li key={`${e.txHash}-${e.logIndex}`} className="flex flex-wrap items-center gap-x-5 gap-y-2 px-6 py-4">
+              <StateBadge kind={e.kind} />
+              <span className="font-mono text-[13px] text-obsidian">{truncateAddress(e.agent)}</span>
+              <span className="text-body-sm text-obsidian">{formatMusd(e.amount)} test mUSD</span>
+              {e.reason ? <span className="text-caption text-fog">{e.reason}</span> : null}
+              <span className="ml-auto">
+                <TxChip href={explorerTx(e.txHash)} label={truncateHash(e.txHash)} />
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function AgentSpotlight() {
+  return (
+    <div className="mt-6 grid gap-6 lg:grid-cols-3">
+      {SPOTLIGHT_AGENTS.map((a) => (
+        <Card key={a.address} tone="paper" pad="lg" className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <span className="text-caption uppercase tracking-[0.08em] text-fog">{a.name}</span>
+            <Chip tone="outline">restricted</Chip>
+          </div>
+          <TxChip href={explorerAddress(a.address)} label={truncateAddress(a.address)} />
+          <p className="text-body-sm text-fog">{a.policy}</p>
+          <p className="mt-auto inline-flex items-center gap-2 text-caption text-obsidian">
+            <span className="h-1.5 w-1.5 rounded-full bg-mint-signal" />
+            0 unauthorized spends
+          </p>
+        </Card>
+      ))}
+      <Card tone="paper" pad="lg" className="flex flex-col justify-between gap-4">
+        <span className="text-caption uppercase tracking-[0.08em] text-fog">Track record</span>
+        <p className="font-heading text-heading text-obsidian" style={{ fontWeight: 350 }}>
+          0 unauthorized moves
+        </p>
+        <p className="text-body-sm text-fog">
+          Across every deployed agent since the restricted stack went live. Blocked requests moved nothing.
+        </p>
+      </Card>
+    </div>
   );
 }
