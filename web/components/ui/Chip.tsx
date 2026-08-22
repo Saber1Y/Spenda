@@ -55,7 +55,7 @@ export function CopyChip({value, label, tone = "outline"}: {value: string; label
   );
 }
 
-/** Explorer link chip → scan.bohr.life. */
+/** Explorer link chip → scan.botchain.ai. */
 export function TxChip({href, label, tone = "outline"}: {href: string; label: string; tone?: ChipTone}) {
   return (
     <a

@@ -20,8 +20,8 @@ export async function POST(request: NextRequest) {
   try { recovered = await recoverMessageAddress({message: parsed.message, signature: body.signature as Hex}); } catch { return NextResponse.json({error: "signature_invalid"}, {status: 401}); }
   if (recovered.toLowerCase() !== parsed.address) return NextResponse.json({error: "signature_address_mismatch"}, {status: 401});
   const expiresAt = Math.floor(Date.now() / 1000) + SESSION_MAX_AGE;
-  const payload = JSON.stringify({address: getAddress(recovered), chainId: 968, expiresAt, sessionId: randomUUID()});
-  const response = NextResponse.json({ok: true, session: {address: getAddress(recovered), chainId: 968, expiresAt}});
+  const payload = JSON.stringify({address: getAddress(recovered), chainId: 677, expiresAt, sessionId: randomUUID()});
+  const response = NextResponse.json({ok: true, session: {address: getAddress(recovered), chainId: 677, expiresAt}});
   response.cookies.set("spenda_wallet_session", tokenFor(payload), {httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", maxAge: SESSION_MAX_AGE, path: "/"});
   response.cookies.set("spenda_wallet_challenge", "", {httpOnly: true, expires: new Date(0), path: "/"});
   return response;

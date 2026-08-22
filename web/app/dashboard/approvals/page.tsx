@@ -31,7 +31,7 @@ export default function ApprovalsPage() {
       if (decision === "approved") {
         if (!address) throw new Error("Connect the vault owner wallet first");
         signature = await signTypedDataAsync({
-          domain: {name: "Spenda Approval", version: "1", chainId: 968, verifyingContract: active.vault},
+          domain: {name: "Spenda Approval", version: "1", chainId: 677, verifyingContract: active.vault},
           types: {SpendApproval: [
             {name: "approvalId", type: "bytes32"}, {name: "intentId", type: "string"}, {name: "agentId", type: "string"},
             {name: "token", type: "address"}, {name: "amount", type: "uint256"}, {name: "recipient", type: "address"}, {name: "expiresAt", type: "uint256"},

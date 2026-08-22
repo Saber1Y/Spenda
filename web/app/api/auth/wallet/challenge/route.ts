@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     "",
     `URI: ${new URL(request.url).origin}`,
     "Version: 1",
-    "Chain ID: 968",
+    "Chain ID: 677",
     `Nonce: ${nonce}`,
     `Issued At: ${issuedAt}`,
   ].join("\n");

@@ -238,7 +238,7 @@ export default function OverviewPage() {
             <div className="mt-1 flex items-center gap-3">
               <Chip tone="outline" className="border-ash/30 text-fog">
                 <Dot width={8} height={8} className="text-base-orange" />
-                BOT Chain 968
+                BOT Chain mainnet
               </Chip>
               {isConnected && address && (
                 <Chip tone="outline" className="border-ash/30 text-fog">

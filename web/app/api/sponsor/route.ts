@@ -23,10 +23,10 @@ import type {BundlerRpcSchema, UnpackedUserOp} from "@/lib/bundlerSchema";
 export const runtime = "nodejs"; // never edge — needs process.env secrets + node crypto
 export const dynamic = "force-dynamic";
 
-const RPC = "https://rpc.bohr.life";
-const BUNDLER = "https://bundler.bohr.life/rpc";
+const RPC = "https://rpc.botchain.ai";
+const BUNDLER = "https://bundler.botchain.ai/rpc";
 const EP = CONTRACTS.entryPoint as Address;
-const CHAIN_ID = 968n;
+const CHAIN_ID = 677n;
 
 // Frozen-gas floors (the C5 callGasLimit-bug lesson: Skandha's per-op breakdown is unreliable, so
 // we floor every estimate at proven minimums). Account is already deployed → no initCode.

@@ -22,7 +22,7 @@ import {buildPaymasterAndData, type UserOpFields} from "./userOp.js";
  * userOpHash (that is the agent client's account-owner signature).
  */
 
-/// Validity-window bounds = the contract with chain 968's block.timestamp. The signer stamps these
+/// Validity-window bounds = the contract with chain 677's block.timestamp. The signer stamps these
 /// off its own wall clock; the EntryPoint enforces them against block time. Host clock drift beyond
 /// SKEW makes ops fail AA32 (looks like a bug, is actually skew) — the return payload surfaces the
 /// window so a Phase C failure is diagnosable. Run the signer host on NTP.

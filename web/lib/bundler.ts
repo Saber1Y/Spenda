@@ -2,7 +2,7 @@ import {createPublicClient, http, decodeEventLog, getAbiItem, rpcSchema, type He
 import {vaultAbi, getActiveContracts} from "./contracts";
 import type {BundlerRpcSchema, UserOpReceiptRaw} from "./bundlerSchema";
 
-const BUNDLER = "https://bundler.bohr.life/rpc";
+const BUNDLER = "https://bundler.botchain.ai/rpc";
 const bundler = createPublicClient({transport: http(BUNDLER), rpcSchema: rpcSchema<BundlerRpcSchema>()});
 
 const approvedEvent = getAbiItem({abi: vaultAbi, name: "AgentActionApproved"});

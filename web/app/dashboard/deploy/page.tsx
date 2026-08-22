@@ -33,7 +33,7 @@ export default function DeployPage() {
 
   const deploy = async () => {
     if (!walletClient || !publicClient || !address) {
-      setError("Wallet client not ready. Make sure MetaMask is connected and on BOT Chain 968.");
+      setError("Wallet client not ready. Make sure MetaMask is connected and on BOT Chain mainnet.");
       setPhase("error");
       return;
     }
@@ -70,7 +70,7 @@ export default function DeployPage() {
       <main className="min-h-screen bg-paper-white pb-24">
         <div className="mx-auto max-w-[600px] px-6 pt-10">
           <Panel title="Deploy a vault" subtitle="connect your wallet first">
-            <PanelNote>Connect your MetaMask wallet to BOT Chain testnet 968 to deploy a vault you own.</PanelNote>
+            <PanelNote>Connect your MetaMask wallet to BOT Chain mainnet 677 to deploy a vault you own.</PanelNote>
           </Panel>
         </div>
       </main>
