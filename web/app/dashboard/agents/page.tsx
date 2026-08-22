@@ -1,9 +1,9 @@
 "use client";
 
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {parseUnits} from "viem";
 import {useAccount, usePublicClient, useWalletClient} from "wagmi";
-import {getActiveContracts, MUSD_DECIMALS} from "@/lib/contracts";
+import {getActiveContracts, MUSD_DECIMALS, vaultAbi} from "@/lib/contracts";
 import {useActiveVaultEntity, useBudgetEntities, useVaultAgentEntities} from "@/lib/base44-hooks";
 import {getBase44Client} from "@/lib/base44";
 import {createRestrictedAgent, revokeRestrictedAgent, updateAgentBudget} from "@/lib/createAgent";
@@ -26,6 +26,38 @@ export default function AgentsPage() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [editing, setEditing] = useState<string | null>(null);
+
+  // Only show agents that actually have an active policy on the live vault.
+  // Base44 may still hold stale demo records from retired deployments.
+  const [activeOnChain, setActiveOnChain] = useState<Record<string, boolean> | null>(null);
+  useEffect(() => {
+    if (!agents || !publicClient) return;
+    let alive = true;
+    const uniq = [...new Set(agents.map((a) => (a.address ?? "").toLowerCase()).filter(Boolean))];
+    (async () => {
+      const entries = await Promise.all(uniq.map(async (addr) => {
+        try {
+          const policy = await publicClient.readContract({
+            address: active.vault,
+            abi: vaultAbi,
+            functionName: "getPolicy",
+            args: [addr as `0x${string}`],
+          });
+          return [addr, policy.active === true] as const;
+        } catch {
+          return [addr, false] as const;
+        }
+      }));
+      if (alive) setActiveOnChain(Object.fromEntries(entries));
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [agents, publicClient, active.vault]);
+
+  const visibleAgents = (agents ?? []).filter(
+    (agent) => agent.address && activeOnChain?.[agent.address.toLowerCase()] === true,
+  );
 
   const create = async (input: {name: string; description: string; max: string; daily: string; days: string; salt: string; capabilities: string}) => {
     if (!vault?.id || !wallet || !publicClient || !address) return setMessage("Connect the vault owner wallet first.");
@@ -95,7 +127,7 @@ export default function AgentsPage() {
     }
   };
 
-  return <div className="max-w-[1200px] px-8 py-8"><div className="flex items-start justify-between"><div><h1 className="font-heading text-heading text-aubergine" style={{fontWeight: 350}}>Agents</h1><p className="mt-1 text-[15px] text-fog">Multiple restricted agents, one policy-controlled vault.</p></div><Button variant="primary" size="sm" onClick={() => setShowCreate((value) => !value)} disabled={!isConnected}>{showCreate ? "Close" : "Create agent"}</Button></div>{message && <p className="mt-4 rounded-[12px] border border-ash bg-bone px-4 py-3 text-body-sm text-fog">{message}</p>}{showCreate && <div className="mt-6"><CreateAgentForm onSubmit={create} busy={busy} /></div>}<div className="mt-8 grid gap-5 lg:grid-cols-2">{agents?.map((agent) => { const budget = budgets?.find((item) => item.agent_id === agent.id || item.agent_address?.toLowerCase() === agent.address?.toLowerCase()); return <AgentCard key={agent.id} agent={agent} budget={budget} editing={editing === agent.id} busy={busy} onEdit={() => setEditing(editing === agent.id ? null : agent.id)} onLifecycle={(status, values) => updateLifecycle(agent, budget ?? {}, status, values)} />; })}</div>{(!agents || agents.length === 0) && <Panel title="No registered agents" subtitle="create one above"><p className="text-body-sm text-fog">An agent account is not a fund custodian. It can only request the vault&apos;s configured spend function.</p></Panel>}</div>;
+  return <div className="max-w-[1200px] px-8 py-8"><div className="flex items-start justify-between"><div><h1 className="font-heading text-heading text-aubergine" style={{fontWeight: 350}}>Agents</h1><p className="mt-1 text-[15px] text-fog">Multiple restricted agents, one policy-controlled vault.</p></div><Button variant="primary" size="sm" onClick={() => setShowCreate((value) => !value)} disabled={!isConnected}>{showCreate ? "Close" : "Create agent"}</Button></div>{message && <p className="mt-4 rounded-[12px] border border-ash bg-bone px-4 py-3 text-body-sm text-fog">{message}</p>}{showCreate && <div className="mt-6"><CreateAgentForm onSubmit={create} busy={busy} /></div>}<div className="mt-8 grid gap-5 lg:grid-cols-2">{visibleAgents.map((agent) => { const budget = budgets?.find((item) => item.agent_id === agent.id || item.agent_address?.toLowerCase() === agent.address?.toLowerCase()); return <AgentCard key={agent.id} agent={agent} budget={budget} editing={editing === agent.id} busy={busy} onEdit={() => setEditing(editing === agent.id ? null : agent.id)} onLifecycle={(status, values) => updateLifecycle(agent, budget ?? {}, status, values)} />; })}</div>{(!agents || visibleAgents.length === 0) && !loading && activeOnChain !== null && <Panel title="No active agents" subtitle="verified against the live vault"><p className="text-body-sm text-fog">Registered records without an active on-chain policy are hidden. An agent account is not a fund custodian. It can only request the vault&apos;s configured spend function.</p></Panel>}</div>;
 }
 
 function CreateAgentForm({onSubmit, busy}: {onSubmit: (input: {name: string; description: string; max: string; daily: string; days: string; salt: string; capabilities: string}) => void; busy: boolean}) {
