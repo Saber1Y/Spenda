@@ -4,7 +4,7 @@
   "rpcUrl": "https://rpc.botchain.ai",
   "bundlerUrl": "",
   "explorerUrl": "https://scan.botchain.ai",
-  "entryPoint": "",
+  "entryPoint": "0x0000000071727De22E5E9d8BAf0edAc6f37da032",
   "supportedToken": "0xaBabc7Ddc03e501d190C676BF3d92ef0e6e87a3C",
   "supportedTokenSymbol": "USDT",
   "supportedTokenDecimals": 6,

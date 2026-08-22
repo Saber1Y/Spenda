@@ -18,6 +18,8 @@ bracket_spacing = false
 
 [rpc_endpoints]
 bot_testnet = "https://rpc.bohr.life"
+bot_mainnet = "https://rpc.botchain.ai"
 
 [etherscan]
 bot_testnet = {key = "${SCAN_API_KEY}", url = "https://scan.bohr.life/api", chain = 968}
+bot_mainnet = {key = "${SCAN_API_KEY}", url = "https://scan.botchain.ai/api", chain = 677}
