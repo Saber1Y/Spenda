@@ -1,23 +1,28 @@
 import {parseAbi, type Address} from "viem";
 
-/** Live BOT Chain 968 deployment mirrored from deployments/testnet-968.json. */
+/** Live BOT Chain mainnet 677 deployment mirrored from deployments/mainnet.json. */
 export const CONTRACTS = {
   entryPoint: "0x0000000071727De22E5E9d8BAf0edAc6f37da032",
-  mockUSD: "0xAD6F06ebA7927FC0f114c296C221fCfd6C5eBf58",
-  vault: "0xfB88d06289EaDD3aE23ef5C7bEF816baFfbf4000",
-  factory: "0x3951041d3e98A34EeDBefd9Db660d29F68B2387b",
-  paymaster: "0x0b860c25Dc6b2Df451AA66cFCdc7D6c6D7802F66",
+  // Official bridged USDT on chain 677. The legacy `mockUSD` key name is kept for
+  // call-site compatibility; there is no mock token on mainnet and nothing mints here.
+  mockUSD: "0xaBabc7Ddc03e501d190C676BF3d92ef0e6e87a3C",
+  vault: "0xf23147Df55089eA6bA87BF24bb4eEE6f7Cea182b",
+  factory: "0xe66dd4f6A29ab1843A39Df47f0D0f9e46F3B858f",
+  paymaster: "0xde609E52D9164C227D4F174D6260289bc3E62eC2",
 } as const satisfies Record<string, Address>;
 
 /** Deployed agent + its owner EOA + the allowlisted vendor. */
 export const DEMO = {
-  agent: "0x2649495B56e8c06C6682549438ac9279599A3aD8",
-  agentOwnerEOA: "0x3F5b96A494061F7338Da529e3047809Ac6a7FB84",
+  agent: "0x45EC5E9DcE259fdd11941482779BC52231955d60",
+  agentOwnerEOA: "0xC94943542Aceb1e1060Db4B3004d5Ae5f8261141",
   vendor: "0x3F5b96A494061F7338Da529e3047809Ac6a7FB84",
 } as const satisfies Record<string, Address>;
 
 /** Vault deploy block — the fromBlock floor for the history log reader. */
-export const DEPLOY_BLOCK = 20_550_329n;
+export const DEPLOY_BLOCK = 20_533_755n;
+
+/** Mainnet bundler for ERC-4337 UserOperations (chain 677). */
+export const BUNDLER_URL = "https://bundler.botchain.ai/rpc";
 
 /** The two headline artifacts for the marketing LiveProof (real, on-chain). */
 export const PROOF_TX = {
