@@ -2,26 +2,21 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useAccount, useConnect } from "wagmi";
+import { useAccount, useConnect, useDisconnect } from "wagmi";
 import { Dot } from "@/components/ui/Icons";
 import { truncateAddress } from "@/lib/format";
 import {loginWithGoogle} from "@/lib/auth";
 import {WalletAuthButton} from "@/components/WalletAuthButton";
+import {useAuth} from "@/components/AuthProvider";
 import Image from "next/image";
 
 const NAV_ITEMS = [
   { href: "/dashboard/overview", label: "Overview", icon: "grid" },
-  { href: "/dashboard/spending", label: "Spending", icon: "credit" },
   { href: "/dashboard/approvals", label: "Approvals", icon: "hand" },
-  { href: "/dashboard/receipts", label: "Receipts", icon: "receipt" },
-  { href: "/dashboard/commerce", label: "Commerce", icon: "shop" },
-  { href: "/dashboard/risk", label: "Risk Policy", icon: "shield" },
-  { href: "/dashboard/monitoring", label: "Monitoring", icon: "pulse" },
   { href: "/dashboard/policies", label: "Policies", icon: "shield" },
   { href: "/dashboard/agents", label: "Agents", icon: "bot" },
   { href: "/dashboard/allowlist", label: "Allowlist", icon: "list" },
   { href: "/dashboard/gas", label: "Gas Sponsorship", icon: "zap" },
-  { href: "/dashboard/audit", label: "Audit Log", icon: "clock" },
 ] as const;
 
 function NavIcon({ icon }: { icon: string }) {
@@ -155,6 +150,13 @@ export function Sidebar({user}: SidebarProps) {
   const pathname = usePathname();
   const { address, isConnected } = useAccount();
   const { connect, connectors } = useConnect();
+  const { disconnect } = useDisconnect();
+  const { signOutWallet } = useAuth();
+
+  const handleDisconnect = () => {
+    void signOutWallet();
+    disconnect();
+  };
 
   return (
     <aside className="fixed inset-y-0 left-0 z-40 flex w-[240px] flex-col border-r border-ash/15 bg-obsidian">
@@ -228,9 +230,29 @@ export function Sidebar({user}: SidebarProps) {
         {isConnected && address ? (
           <div className="flex items-center gap-2.5 rounded-[12px] bg-white/5 px-3 py-2.5">
             <Dot width={9} height={9} className="text-mint-signal" />
-            <span className="text-[13px] tabular-nums text-paper-white">
+            <span className="flex-1 text-[13px] tabular-nums text-paper-white">
               {truncateAddress(address)}
             </span>
+            <button
+              onClick={handleDisconnect}
+              title="Disconnect wallet"
+              aria-label="Disconnect wallet"
+              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-fog transition hover:bg-white/10 hover:text-paper-white"
+            >
+              <svg
+                className="h-3.5 w-3.5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+            </button>
           </div>
         ) : (
           <button
