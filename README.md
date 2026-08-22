@@ -1,4 +1,4 @@
-# Spenda — AI Agent Spending Control Plane
+# Spenda - AI Agent Spending Control Plane
 
 Spenda is the control plane for autonomous agent spending.
 It gives users an on-chain vault that fences what an AI agent can spend, while a paymaster sponsors all gas.
@@ -6,14 +6,36 @@ It gives users an on-chain vault that fences what an AI agent can spend, while a
 The agent holds nothing.
 It requests, the vault decides, the paymaster pays.
 
+## Live Deployment (BOT Chain Mainnet, chainId 677)
+
+| Role | Address |
+|---|---|
+| RPC | `https://rpc.botchain.ai` |
+| Explorer | `https://scan.botchain.ai` |
+| Bundler | `https://bundler.botchain.ai/rpc` |
+| EntryPoint (ERC-4337 v0.8) | `0x0000000071727De22E5E9d8BAf0edAc6f37da032` |
+| USDT (official bridged) | `0xaBabc7Ddc03e501d190C676BF3d92ef0e6e87a3C` |
+| Vault | `0xf23147Df55089eA6bA87BF24bb4eEE6f7Cea182b` |
+| Paymaster | `0xfB88d06289EaDD3aE23ef5C7bEF816baFfbf4000` |
+| Restricted Agent Factory | `0x0b860c25Dc6b2Df451AA66cFCdc7D6c6D7802F66` |
+| Pilot restricted agent | `0x13bb632f03083782D639d37bdaA35bbd930eF70E` |
+| Vault/agent owner EOA | `0x3F5b96A494061F7338Da529e3047809Ac6a7FB84` |
+
+The live pilot policy on the agent is max 0.50 USDT per transaction and 1.00 USDT per day.
+USDT and the pilot vendor are the only allowlisted target and token.
+
+### Verified Mainnet Proof Transactions
+
+- Approved: [`0xaa189540...`](https://scan.botchain.ai/tx/0xaa18954018e266b28928d20bf7ab0cef37dfcf9aeb9c5861c2aa4e3d0c0fc52d) - 0.50 USDT paid to the vendor, gas sponsored by the paymaster.
+- Blocked: [`0x5dae47f9...`](https://scan.botchain.ai/tx/0x5dae47f911325bcfdb21b9a67768bbcdcd28ee1f327bd5bdb35bd57506a1fcc8) - 3.00 USDT held with reason `exceeds maxPerTx`, zero USDT moved.
+
 ## Stack
 
-- **Smart contracts**: `BOTSpendVault`, `BOTSpendPaymaster`, `SimpleAccountFactory` (ERC-4337)
-- **Mainnet account path**: `RestrictedAgentAccountFactory` deploys vault-bound ERC-4337 agent accounts that reject arbitrary calls and require the configured paymaster.
-- **Chain**: BOT Chain Testnet 968 (RPC `rpc.bohr.life`, Skandha bundler `bundler.bohr.life`)
-- **Account abstraction**: ERC-4337 UserOperations, Skandha bundler, paymaster-sponsored gas
-- **Backend**: Base44 entities, functions, auth, real-time sync
+- **Smart contracts**: `BOTSpendVault`, `BOTSpendPaymaster`, `RestrictedAgentAccountFactory` (ERC-4337)
+- **Chain**: BOT Chain mainnet 677 (RPC `rpc.botchain.ai`, bundler `bundler.botchain.ai`)
+- **Account abstraction**: ERC-4337 UserOperations, verifying paymaster, sponsored gas
 - **Frontend**: Next.js 15, Tailwind, wagmi + viem, custom design system
+- **Backend sync**: Base44 entities, functions, auth, real-time sync
 
 ## Architecture
 
@@ -31,7 +53,8 @@ PAYMASTER SPONSORS   <-- on-chain: pays EntryPoint gas, zero agent balance
 ```
 
 The AI agent never holds user funds.
-It can only propose spending transactions.
+It can only propose spending transactions through its restricted account.
+The account rejects arbitrary calls and only forwards `executeSpend` to its bound vault.
 The vault enforces spending policy on-chain before any transfer executes.
 The paymaster sponsors gas so the agent does not need native tokens.
 
@@ -42,31 +65,28 @@ The paymaster sponsors gas so the agent does not need native tokens.
 The vault holds ERC-20 funds and enforces policy on every agent action.
 
 Key functions:
-- `setPolicy(maxPerTx, dailyCap, expiry)` — set spending limits
-- `setAgentPolicy(agent, maxPerTx, dailyCap, expiry, active)` — per-agent policy
-- `allowedTarget(agent, target)` — check if target is allowlisted
-- `allowedToken(agent, token)` — check if token is allowlisted
-- `setAllowedTarget(agent, target, allowed)` — add/remove target
-- `setAllowedToken(agent, token, allowed)` — add/remove token
-- `revokeAgent(agent)` — emergency off-switch
-- `remainingDailyCap(agent)` — remaining daily allowance
+- `setPolicy(maxPerTx, dailyCap, expiry)` - set spending limits
+- `setAgentPolicy(agent, maxPerTx, dailyCap, expiry, active)` - per-agent policy
+- `allowedTarget(agent, target)` / `allowedToken(agent, token)` - allowlist reads
+- `setAllowedTarget(agent, target, allowed)` / `setAllowedToken(agent, token, allowed)` - allowlist writes
+- `revokeAgent(agent)` - emergency off-switch
+- `remainingDailyCap(agent)` - remaining daily allowance
 
 Events:
-- `AgentActionApproved(agent, target, token, amount, actionId)` — policy passed
-- `AgentActionBlocked(agent, target, token, amount, reason)` — policy rejected
+- `AgentActionApproved(agent, target, token, amount, actionId)` - policy passed
+- `AgentActionBlocked(agent, target, token, amount, reason)` - policy rejected
+- `ReceiptIssued(...)` - settlement receipt
 
 ### BOTSpendPaymaster
 
-ERC-4337 paymaster that sponsors gas for approved agent actions.
-Deposit native BOT to the EntryPoint to fund gasless operations.
+ERC-4337 verifying paymaster that sponsors gas for valid agent actions.
+A server-side verifying signer authorizes UserOps before sponsorship.
+Deposit native BOT into the EntryPoint against the paymaster to fund gasless operations.
 
-### SimpleAccountFactory
+### RestrictedAgentAccountFactory
 
-Creates and manages ERC-4337 smart accounts for agents.
-Each agent gets its own account controlled by an owner EOA.
-
-The currently hosted testnet demo uses this legacy account deployment.
-New mainnet-oriented deployments use `RestrictedAgentAccountFactory`, which binds each account to one vault and paymaster and permits only `executeSpend` calls through EntryPoint.
+Deploys vault-bound ERC-4337 agent accounts.
+Each account is bound to one vault and one paymaster at creation and permits only `executeSpend` calls through EntryPoint.
 
 ## Dashboard
 
@@ -74,72 +94,34 @@ New mainnet-oriented deployments use `RestrictedAgentAccountFactory`, which bind
 
 | Route | Purpose |
 |---|---|
-| `/dashboard/overview` | KPIs, agent status, analytics charts, recent activity, sync controls |
-| `/dashboard/spending` | Transaction history with filters (All/Approved/Blocked), Run Agent panel |
+| `/dashboard/overview` | KPIs, live agent status, Run-the-agent panel, analytics, recent activity |
+| `/dashboard/approvals` | Approved/blocked decision history from on-chain events |
 | `/dashboard/policies` | Policy status, edit form, daily cap meter, emergency revoke |
-| `/dashboard/agents` | Agent wallet, vault connection, gasless status, balances |
+| `/dashboard/agents` | Agent list, creation via factory, budgets |
 | `/dashboard/allowlist` | Approved targets and tokens, add/remove controls |
 | `/dashboard/gas` | Paymaster deposit, security invariants, fund paymaster |
-| `/dashboard/audit` | Full audit log table with timestamps, events, decisions, transactions |
 
-### Design
+Additional routes (`spending`, `receipts`, `commerce`, `risk`, `monitoring`, `audit`) exist but are intentionally hidden from the sidebar during the pilot.
 
-- Dark sidebar navigation with active route highlighting
-- Dark hero header on Overview with glassmorphism KPI cards
-- Light content area below the hero
-- Consistent Base44 brand: orange primary (`#fe6a00`), dark secondary (`#1e1e24`)
-- Custom pill-based design system (chips, buttons, stat tiles, state badges)
-
-### Components
-
-| Component | Location | Purpose |
-|---|---|---|
-| `Sidebar` | `components/dashboard/Sidebar.tsx` | Persistent dark sidebar with nav + wallet |
-| `RunAgentPanel` | `components/dashboard/RunAgentPanel.tsx` | Preset + custom spend buttons, live UserOp submission |
-| `GaslessStatusBadge` | `components/dashboard/GaslessStatusBadge.tsx` | Paymaster funded + agent holds nothing indicator |
-| `DailyCapMeter` | `components/dashboard/DailyCapMeter.tsx` | Visual daily spending progress bar |
-| `PolicyPanel` | `components/dashboard/PolicyPanel.tsx` | Policy display and edit form |
-| `OwnerControls` | `components/dashboard/OwnerControls.tsx` | Fund vault, fund paymaster, allowlist, revoke |
-| `SyncPanel` | `components/dashboard/SyncPanel.tsx` | Pull on-chain state into Base44 entities |
-| `Panel` | `components/dashboard/Panel.tsx` | Reusable card with title + action slot |
-| `StatTile` | `components/ui/StatTile.tsx` | Labelled stat with value + subtitle |
-| `Chip` | `components/ui/Chip.tsx` | Pill badge (neutral, lavender, mint, blush, outline) |
-| `CopyChip` | `components/ui/Chip.tsx` | Click-to-copy address chip |
-| `TxChip` | `components/ui/Chip.tsx` | Explorer link chip |
-| `StateBadge` | `components/ui/StateBadge.tsx` | Approved (mint) / Blocked (blush) badge |
-
-### Hooks
-
-| Hook | File | Purpose |
-|---|---|---|
-| `useVaultState` | `lib/hooks.ts` | Batched on-chain vault state read |
-| `useActionHistory` | `lib/hooks.ts` | Incremental action history from on-chain events |
-| `useVaultEntities` | `lib/base44-hooks.ts` | Base44 vault entity query |
-| `useTransactionEntities` | `lib/base44-hooks.ts` | Base44 transaction entity query |
-| `useAuditLogEntities` | `lib/base44-hooks.ts` | Base44 audit log entity query |
-| `useOwnerWrite` | `lib/useOwnerWrite.ts` | Owner wallet write transaction helper |
-
-### Key Libraries
+### Key Components and Libraries
 
 | File | Purpose |
 |---|---|
-| `lib/chain.ts` | BOT Chain 968 public client, explorer URL helpers |
-| `lib/contracts.ts` | Contract ABIs, addresses, `getActiveContracts()` |
-| `lib/reads.ts` | `readVaultState()`, `readActions()`, event log parsing |
+| `components/dashboard/RunAgentPanel.tsx` | Preset + custom spend buttons, live sponsored UserOp submission |
+| `app/api/sponsor/route.ts` | Validates request, signs paymaster + UserOp, submits to bundler |
+| `lib/sponsor/signer.ts` | Paymaster sponsorship logic and policy guards |
+| `lib/contracts.ts` | Canonical mainnet addresses, ABIs, `getActiveContracts()` |
+| `lib/proof.ts` | Landing-page live proof decoded from mainnet receipts |
 | `lib/bundler.ts` | UserOp submission, receipt polling, outcome resolution |
-| `lib/proof.ts` | Transaction proof fetch from on-chain logs |
-| `lib/format.ts` | `formatMusd`, `formatBot`, `truncateAddress`, `timeAgo` |
-| `lib/deployVault.ts` | Full stack deployment (vault + paymaster + agent + policy + funding) |
-| `lib/activeVault.ts` | localStorage vault config with fallback to demo defaults |
-| `lib/audit.ts` | Base44 audit log recording |
-| `lib/artifacts.ts` | Compiled contract bytecodes for frontend deployment |
+| `lib/reads.ts` | `readVaultState()`, `readActions()`, event log parsing |
+| `scripts/RotateMainnetPaymaster.s.sol` | Deploy a fresh paymaster + factory around an existing vault |
 
 ## Running
 
 ```bash
 cd web
 npm install
-cp .env.local.example .env.local   # set PRIVATE_KEY, VERIFYING_SIGNER_KEY, AGENT_OWNER_KEY
+cp .env.example .env.local   # fill in keys
 npm run dev
 ```
 
@@ -147,55 +129,48 @@ npm run dev
 
 | Variable | Purpose |
 |---|---|
-| `NEXT_PUBLIC_BASE44_PROJECT_ID` | Base44 project ID (defaults to `6a631622f530d0be34c151e0`) |
 | `VERIFYING_SIGNER_KEY` | Private key matching the paymaster's verifyingSigner |
 | `AGENT_OWNER_KEY` | Private key matching the agent owner EOA |
+| `SPENDA_VERIFYING_SIGNER_ADDRESS` | Expected signer address override |
+| `SPENDA_AGENT_OWNER_ADDRESS` | Expected agent owner address override |
+| `DIRECT_PILOT_ENABLED` | Set to `true` to enable the live run panel |
 | `NEXT_PUBLIC_SITE_URL` | Deployed URL for OG metadata |
+
+Keys are generated locally and never committed.
+Recommended storage is outside the repo (for example `~/.spenda-paymaster-signer.wallet`) loaded into env at runtime.
 
 ### Testing the Spend Flow
 
-1. Run `scripts/preflight-deployment.sh deployments/testnet-968.json`.
-2. Connect the vault owner wallet and sign in.
-3. Open Agents and confirm the restricted agent and budget.
-4. Open Commerce and select an active paying agent.
-5. Create a safe intent and observe automatic execution.
-6. Open Approvals for a risky intent and approve it with the owner wallet.
-7. Open Receipts and verify the on-chain transaction hash.
-8. Open Monitoring and refresh the chain-derived health snapshot.
+1. Run `bash scripts/preflight-deployment.sh deployments/mainnet.json`.
+2. Start the app with the signer, owner key, and `DIRECT_PILOT_ENABLED=true` set.
+3. Open `/dashboard/overview` and confirm vault balance, caps, and sponsor deposit read live.
+4. Click **Spend 0.50 USDT** - expect approval and vendor payment.
+5. Click **Try 3 USDT (blocked)** - expect `exceeds maxPerTx` with zero movement.
+6. Verify both receipts on scan.botchain.ai.
 
-See [DEMO_CHECKLIST.md](./DEMO_CHECKLIST.md) for the complete testnet demo sequence.
+## Spend Token Policy
 
-### Deploying a New Vault
+- `BOT` is the native gas token on BOT Chain.
+  It funds transaction fees and the paymaster deposit.
+- The only supported spend token is BOT Chain's official bridged USDT: `0xaBabc7Ddc03e501d190C676BF3d92ef0e6e87a3C`.
+- No mock or mintable test token exists on mainnet deployments.
 
-Navigate to `/dashboard/deploy` to deploy a fresh vault stack:
-- BOTSpendVault
-- BOTSpendPaymaster
-- RestrictedAgentAccountFactory
-- Agent account creation
-- Policy configuration
-- Allowlist setup
-- Paymaster funding
+## Brand Assets
 
-## Contract Addresses (Testnet)
+The Spenda mark ("spend gate") lives in `web/app/icon.svg` with PNG renders ready for reuse:
 
-| Contract | Address |
+| Asset | Path |
 |---|---|
-| Vault | `0xfB88d06289EaDD3aE23ef5C7bEF816baFfbf4000` |
-| Paymaster | `0x0b860c25Dc6b2Df451AA66cFCdc7D6c6D7802F66` |
-| Restricted Factory | `0x3951041d3e98A34EeDBefd9Db660d29F68B2387b` |
-| Restricted Agent | `0x2649495B56e8c06C6682549438ac9279599A3aD8` |
-| EntryPoint | `0x0000000071727De22E5E9d8BAf0edAc6f37da032` |
-| MockUSD | `0xAD6F06ebA7927FC0f114c296C221fCfd6C5eBf58` |
-| Owner EOA | `0x3F5b96A494061F7338Da529e3047809Ac6a7FB84` |
+| Favicon source SVG | `web/app/icon.svg` |
+| Favicon PNG | `web/app/icon.png` (512px) |
+| Apple touch icon | `web/app/apple-icon.png` (180px) |
+| Mark PNG for decks/posts | `web/public/spenda-mark-512.png`, `web/public/spenda-mark-1024.png` |
+| Mark SVG for print/large use | `web/public/spenda-mark.svg` |
 
-Restricted testnet acceptance transaction:
-[`0xdbe5d62a...`](https://scan.bohr.life/tx/0xdbe5d62aec8ef6d9a8d8a9c7c26bf74b1d3e7ed3dbd47733543b0844c9cba50a).
+Brand colors: orange primary `#fe6a00`, dark surface `#1e1e24`, neutral line `#3d3c44`.
 
-### Spend Token Policy
+## Roadmap
 
-- `BOT` is the native gas token on BOT Chain. It funds transaction fees and the paymaster deposit.
-- `mUSD` is a mintable test-only ERC-20 used by the current testnet demo.
-- BOT Chain's official bridge supports USDT.
-- Official BOT Chain testnet USDT: `0x75edC9335175Fc0552D51D48439F229c10420fe3`.
-- Official BOT Chain mainnet USDT: `0xaBabc7Ddc03e501d190C676BF3d92ef0e6e87a3C`.
-- Mainnet Spenda must use the official USDT contract or another explicitly verified supported asset, never `MockUSD`.
+Shipped: vault custody, restricted agents, per-agent policies, allowlists, approve/block fence with reasons, gasless ERC-4337 execution, receipts, dashboard, live mainnet proof.
+
+Next: intent-based spending, per-intent budgets, agent-to-agent payments, risk scoring, human-approval escalation, RWA spending category, org-chart UI for agent fleets.

@@ -8,7 +8,7 @@ import { truncateAddress } from "@/lib/format";
 import {loginWithGoogle} from "@/lib/auth";
 import {WalletAuthButton} from "@/components/WalletAuthButton";
 import {useAuth} from "@/components/AuthProvider";
-import Image from "next/image";
+import {Logo} from "@/components/ui/Logo";
 
 const NAV_ITEMS = [
   { href: "/dashboard/overview", label: "Overview", icon: "grid" },
@@ -161,15 +161,10 @@ export function Sidebar({user}: SidebarProps) {
   return (
     <aside className="fixed inset-y-0 left-0 z-40 flex w-[240px] flex-col border-r border-ash/15 bg-obsidian">
       {/* Brand */}
-      <div className="flex h-16 items-center gap-2.5 border-b border-ash/15 px-5">
-        <Image
-          src="/spenda-logo.png"
-          alt="Spenda"
-          height={50}
-          width={150}
-          className="rounded-[8px] select-none"
-          draggable={false}
-        />
+      <div className="flex h-16 items-center border-b border-ash/15 px-5">
+        <Link href="/" aria-label="Spenda home">
+          <Logo height={30} light />
+        </Link>
       </div>
 
       {/* Nav */}
