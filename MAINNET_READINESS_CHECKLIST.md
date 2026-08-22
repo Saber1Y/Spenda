@@ -10,7 +10,7 @@ Status: core stack deployed on chain 677 on 2026-08-22. Addresses and tx hashes 
 
 - [x] Official BOT Chain mainnet chain ID confirmed: `677`.
 - [x] Official mainnet RPC confirmed: `https://rpc.botchain.ai`.
-- [ ] Official mainnet bundler confirmed. Testnet used `https://bundler.bohr.life/rpc`; mainnet candidate unverified.
+- [x] Official mainnet bundler confirmed: `https://bundler.botchain.ai/rpc` (chain 677, supports EntryPoint `0x0000000071727De22E5E9d8BAf0edAc6f37da032`).
 - [x] Official mainnet EntryPoint address confirmed: `0x0000000071727De22E5E9d8BAf0edAc6f37da032`, code live on chain 677.
 - [x] Official supported stablecoin confirmed: USDT at `0xaBabc7Ddc03e501d190C676BF3d92ef0e6e87a3C`, 6 decimals.
 - [ ] Contract source verified on the mainnet explorer.
