@@ -3,6 +3,9 @@
 This checklist is intentionally separate from testnet readiness.
 Do not broadcast a mainnet deployment until every required value is verified.
 
+Status: core stack deployed on chain 677 on 2026-08-22. Addresses and tx hashes in
+`deployments/mainnet.json`. Remaining items below gate the first live pilot.
+
 ## Network and Contracts
 
 - [x] Official BOT Chain mainnet chain ID confirmed: `677`.
@@ -19,7 +22,7 @@ Do not broadcast a mainnet deployment until every required value is verified.
 ## Key Separation
 
 - [ ] Mainnet vault owner is a dedicated multisig or protected owner wallet.
-- [ ] Mainnet paymaster verifying signer is a separate key.
+- [x] Mainnet paymaster verifying signer is a separate key (`0xc06859dC7cf92360a79B7C6684fAD32cAE674f8B`, distinct from owner; enforced by `DeployMainnet.s.sol` and read back on-chain).
 - [ ] Mainnet agent owner keys are separate from the vault owner where possible.
 - [ ] No testnet private key is reused for mainnet.
 - [ ] Key backup and rotation procedure is documented.
