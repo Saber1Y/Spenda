@@ -20,7 +20,7 @@ export function AgentHeader({
   return (
     <div className="flex flex-col gap-5 border-b border-ash pb-8 sm:flex-row sm:items-end sm:justify-between">
       <div className="flex flex-col gap-3">
-        <span className="text-caption uppercase tracking-[0.08em] text-fog">Agent vault · BOT Chain 968</span>
+        <span className="text-caption uppercase tracking-[0.08em] text-fog">Agent vault · BOT Chain mainnet</span>
         <h1 className="font-heading text-heading text-aubergine sm:text-heading-lg sm:leading-[1.1]" style={{fontWeight: 350}}>
           Spend control
         </h1>

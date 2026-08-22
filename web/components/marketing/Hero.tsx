@@ -45,7 +45,7 @@ export function Hero() {
             </a>
             <span className="inline-flex items-center gap-2">
               <Shield width={14} height={14} className="text-base-orange" />
-              Live on BOT Chain testnet
+              Live on BOT Chain mainnet
             </span>
             <a href="#proof" className="transition hover:text-paper-white">
               Real approved + blocked transactions

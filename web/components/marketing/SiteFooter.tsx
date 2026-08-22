@@ -5,7 +5,7 @@ import { ArrowUpRight } from "@/components/ui/Icons";
 const links = [
   { label: "Vault contract", href: explorerAddress(CONTRACTS.vault) },
   { label: "Paymaster", href: explorerAddress(CONTRACTS.paymaster) },
-  { label: "BOTScan", href: "https://scan.bohr.life" },
+  { label: "BOTScan", href: "https://scan.botchain.ai" },
   { label: "Mainnet USDT", href: "https://scan.botchain.ai/address/0xaBabc7Ddc03e501d190C676BF3d92ef0e6e87a3C" },
 ];
 

@@ -44,7 +44,7 @@ function ProofColumn({data}: {data: ProofResult | undefined}) {
         <span className="text-caption uppercase tracking-[0.08em] text-fog">executeSpend</span>
         {data ? (
           <div className="mt-1 font-heading text-heading-lg leading-none text-obsidian" style={{fontWeight: 350}}>
-             {formatMusd(data.amount)} <span className="text-heading-sm text-fog">test mUSD</span>
+             {formatMusd(data.amount)} <span className="text-heading-sm text-fog">USDT</span>
           </div>
         ) : (
           <Skeleton className="mt-2 h-12 w-40" />
@@ -66,7 +66,7 @@ function ProofColumn({data}: {data: ProofResult | undefined}) {
         <div className="flex items-center justify-between gap-3">
           <span className="text-fog">Result</span>
           <span className="text-obsidian">
-             {approved ? `vendor received ${data ? formatMusd(data.amount) : "-"} test mUSD` : "nothing moved"}
+             {approved ? `vendor received ${data ? formatMusd(data.amount) : "-"} USDT` : "nothing moved"}
           </span>
         </div>
         <div className="flex items-center justify-between gap-3">
@@ -104,8 +104,8 @@ export function LiveProof() {
              Policy outcomes you can inspect.
           </h2>
           <p className="mt-5 text-body text-fog">
-             Real BOT Chain testnet acceptance transactions show an approved restricted-account payment and a blocked
-             policy request. Both use valueless test mUSD; mainnet settlement is configured for official USDT.
+             Real BOT Chain mainnet acceptance transactions show an approved restricted-account payment and a blocked
+             policy request. Settlement is official bridged USDT; agents never custody it.
           </p>
         </div>
 
@@ -128,14 +128,9 @@ export function LiveProof() {
 
 const SPOTLIGHT_AGENTS = [
   {
-    name: "Procurement agent",
-    address: "0x2649495B56e8c06C6682549438ac9279599A3aD8",
-    policy: "Max 50 test mUSD per tx · 250 per day",
-  },
-  {
-    name: "Research agent",
-    address: "0x02B56f3Bd6fb799AE3acF9053A69FA99EE3899b5",
-    policy: "Max 10 test mUSD per tx · 50 per day",
+    name: "Pilot procurement agent",
+    address: "0x45EC5E9DcE259fdd11941482779BC52231955d60",
+    policy: "Max 2 USDT per tx · 4 per day · expires Sep 21, 2026",
   },
 ];
 
@@ -172,7 +167,7 @@ function ActivityFeed() {
             <li key={`${e.txHash}-${e.logIndex}`} className="flex flex-wrap items-center gap-x-5 gap-y-2 px-6 py-4">
               <LandingBadge kind={e.kind} />
               <span className="font-mono text-[13px] text-obsidian">{truncateAddress(e.agent)}</span>
-              <span className="text-body-sm text-obsidian">{formatMusd(e.amount)} test mUSD</span>
+              <span className="text-body-sm text-obsidian">{formatMusd(e.amount)} USDT</span>
               {e.reason ? <span className="text-caption text-fog">{e.reason}</span> : null}
               <span className="ml-auto">
                 <TxChip href={explorerTx(e.txHash)} label={truncateHash(e.txHash)} />
