@@ -11,6 +11,7 @@ import {RestrictedAgentAccountFactory} from "../src/RestrictedAgentAccountFactor
 ///         BOTSpendVault(owner=deployer) -> BOTSpendPaymaster -> RestrictedAgentAccountFactory.
 ///         Official USDT is the spend token; MockUSD is never deployed here.
 ///         Requires env: DEPLOYER_PK (funded deployer key), VERIFYING_SIGNER (separate paymaster signer address).
+///         Run this again only with a fresh, unexposed deployer and signer for a rotation.
 contract DeployMainnet is Script {
     address internal constant ENTRYPOINT = 0x0000000071727De22E5E9d8BAf0edAc6f37da032;
     address internal constant USDT = 0xaBabc7Ddc03e501d190C676BF3d92ef0e6e87a3C;

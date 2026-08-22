@@ -15,10 +15,6 @@ import {RestrictedAgentAccountFactory} from "../src/RestrictedAgentAccountFactor
 ///         Requires env: DEPLOYER_PK, AGENT_OWNER (controller of the agent account), SPENDA_VENDOR.
 contract ConfigureMainnetStack is Script {
     address internal constant USDT = 0xaBabc7Ddc03e501d190C676BF3d92ef0e6e87a3C;
-    address internal constant VAULT = 0xf23147Df55089eA6bA87BF24bb4eEE6f7Cea182b;
-    address internal constant PAYMASTER = 0xde609E52D9164C227D4F174D6260289bc3E62eC2;
-    address internal constant FACTORY = 0xe66dd4f6A29ab1843A39Df47f0D0f9e46F3B858f;
-
     struct AgentConfig {
         address owner;
         address vendor;
@@ -32,22 +28,30 @@ contract ConfigureMainnetStack is Script {
 
     function run() external returns (RestrictedAgentAccount agent) {
         uint256 pk = vm.envUint("DEPLOYER_PK");
+        address deployer = vm.addr(pk);
+        address vaultAddress = vm.envAddress("SPENDA_VAULT");
+        address paymasterAddress = vm.envAddress("SPENDA_PAYMASTER");
+        address factoryAddress = vm.envAddress("SPENDA_RESTRICTED_FACTORY");
         require(block.chainid == 677, "wrong chain: expected 677");
-        require(_hasCode(USDT) && _hasCode(VAULT) && _hasCode(PAYMASTER) && _hasCode(FACTORY), "stack missing on chain");
+        require(_hasCode(USDT) && _hasCode(vaultAddress) && _hasCode(paymasterAddress) && _hasCode(factoryAddress), "stack missing on chain");
+        require(BOTSpendVault(payable(vaultAddress)).owner() == deployer, "deployer is not vault owner");
+        require(BOTSpendPaymaster(payable(paymasterAddress)).VAULT() == vaultAddress, "paymaster/vault mismatch");
+        require(RestrictedAgentAccountFactory(factoryAddress).vault() == vaultAddress, "factory/vault mismatch");
+        require(RestrictedAgentAccountFactory(factoryAddress).paymaster() == paymasterAddress, "factory/paymaster mismatch");
 
         AgentConfig memory cfg = _readConfig();
         _validate(cfg);
 
         vm.startBroadcast(pk);
-        agent = RestrictedAgentAccountFactory(FACTORY).createAccount(cfg.owner, cfg.salt);
-        BOTSpendVault(payable(VAULT)).setAgentPolicy(address(agent), cfg.maxPerTx, cfg.dailyCap, cfg.expiry, true);
-        BOTSpendVault(payable(VAULT)).setAllowedTarget(address(agent), cfg.vendor, true);
-        BOTSpendVault(payable(VAULT)).setAllowedToken(address(agent), USDT, true);
+        agent = RestrictedAgentAccountFactory(factoryAddress).createAccount(cfg.owner, cfg.salt);
+        BOTSpendVault(payable(vaultAddress)).setAgentPolicy(address(agent), cfg.maxPerTx, cfg.dailyCap, cfg.expiry, true);
+        BOTSpendVault(payable(vaultAddress)).setAllowedTarget(address(agent), cfg.vendor, true);
+        BOTSpendVault(payable(vaultAddress)).setAllowedToken(address(agent), USDT, true);
         if (cfg.vaultFunding > 0) {
-            IERC20(USDT).transfer(VAULT, cfg.vaultFunding);
+            require(IERC20(USDT).transfer(vaultAddress, cfg.vaultFunding), "USDT transfer failed");
         }
         if (cfg.paymasterFunding > 0) {
-            BOTSpendPaymaster(payable(PAYMASTER)).deposit{value: cfg.paymasterFunding}();
+            BOTSpendPaymaster(payable(paymasterAddress)).deposit{value: cfg.paymasterFunding}();
         }
         vm.stopBroadcast();
 

@@ -49,8 +49,10 @@ function loadKeys(): {signerKey?: Hex; ownerKey?: Hex; configured: boolean} {
     return {configured: false};
   }
   try {
-    const signerMatches = privateKeyToAccount(signerKey).address.toLowerCase() === CONTRACTS.verifyingSigner.toLowerCase();
-    const ownerMatches = privateKeyToAccount(ownerKey).address.toLowerCase() === DEMO.agentOwnerEOA.toLowerCase();
+    const expectedSigner = process.env.SPENDA_VERIFYING_SIGNER_ADDRESS ?? CONTRACTS.verifyingSigner;
+    const expectedOwner = process.env.SPENDA_AGENT_OWNER_ADDRESS ?? DEMO.agentOwnerEOA;
+    const signerMatches = privateKeyToAccount(signerKey).address.toLowerCase() === expectedSigner.toLowerCase();
+    const ownerMatches = privateKeyToAccount(ownerKey).address.toLowerCase() === expectedOwner.toLowerCase();
     return {signerKey, ownerKey, configured: signerMatches && ownerMatches};
   } catch {
     return {configured: false};
