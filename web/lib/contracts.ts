@@ -56,16 +56,24 @@ export function getActiveContracts() {
     const raw = localStorage.getItem("spenda:activeVault");
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (parsed.vaultAddress && parsed.paymasterAddress && parsed.agentAddress) {
-        if ((!parsed.chainId || Number(parsed.chainId) === 677) && parsed.vaultAddress.toLowerCase() !== "0xfb88d06289eadd3ae23ef5c7bef816baffbf4000") return {
+      const eq = (a: unknown, b: string) => typeof a === "string" && a.toLowerCase() === b.toLowerCase();
+      // Only honor a saved stack if every address matches the canonical mainnet
+      // deployment; anything else is stale testnet data and must be ignored.
+      if (
+        (!parsed.chainId || Number(parsed.chainId) === 677) &&
+        eq(parsed.vaultAddress, CONTRACTS.vault) &&
+        eq(parsed.paymasterAddress, CONTRACTS.paymaster) &&
+        eq(parsed.agentAddress, DEMO.agent)
+      ) {
+        return {
           entryPoint: CONTRACTS.entryPoint as Address,
-          mockUSD: parsed.mockUSDAddress ?? CONTRACTS.mockUSD,
-          vault: parsed.vaultAddress as Address,
+          mockUSD: CONTRACTS.mockUSD as Address,
+          vault: CONTRACTS.vault as Address,
           factory: CONTRACTS.factory as Address,
-          paymaster: parsed.paymasterAddress as Address,
-          agent: parsed.agentAddress as Address,
-          agentOwnerEOA: parsed.agentOwnerEOA as Address,
-          vendor: parsed.vendorAddress as Address,
+          paymaster: CONTRACTS.paymaster as Address,
+          agent: DEMO.agent as Address,
+          agentOwnerEOA: DEMO.agentOwnerEOA as Address,
+          vendor: DEMO.vendor as Address,
           deployBlock: BigInt(parsed.deployBlock ?? DEPLOY_BLOCK),
         };
       }

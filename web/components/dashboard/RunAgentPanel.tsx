@@ -142,8 +142,8 @@ export function RunAgentPanel({refetch, className = ""}: {refetch: () => void; c
         outcome is whatever the fence returns, not scripted.
       </p>
       <div className="flex flex-wrap items-center gap-3">
-        <Button variant="primary" size="sm" onClick={() => doRun(1_000_000n)} disabled={busy || configured === null}>
-          Spend 1 USDT
+        <Button variant="primary" size="sm" onClick={() => doRun(500_000n)} disabled={busy || configured === null}>
+          Spend 0.50 USDT
         </Button>
           <Button variant="secondary" size="sm" onClick={() => doRun(3_000_000n)} disabled={busy || configured === null}>
            Try 3 USDT (blocked)

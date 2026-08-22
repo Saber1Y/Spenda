@@ -22,6 +22,7 @@ import { Dot, Check, Hand } from "@/components/ui/Icons";
 import { GaslessStatusBadge } from "@/components/dashboard/GaslessStatusBadge";
 import { SyncPanel } from "@/components/dashboard/SyncPanel";
 import { DailyCapMeter } from "@/components/dashboard/DailyCapMeter";
+import { RunAgentPanel } from "@/components/dashboard/RunAgentPanel";
 
 function ApprovedBlockedDonut({
   approved,
@@ -435,6 +436,17 @@ export default function OverviewPage() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Live agent run */}
+        <div className="mt-8">
+          <RunAgentPanel
+            refetch={() => {
+              refetch();
+              history.refetch();
+              refetchTx();
+            }}
+          />
         </div>
 
         {/* Analytics + Recent Activity side by side */}
