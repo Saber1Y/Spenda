@@ -14,6 +14,23 @@
   "owner": "0x3F5b96A494061F7338Da529e3047809Ac6a7FB84",
   "verifyingSigner": "0xc06859dC7cf92360a79B7C6684fAD32cAE674f8B",
   "deploymentBlock": 20533755,
+  "agents": [
+    {
+      "account": "0x45EC5E9DcE259fdd11941482779BC52231955d60",
+      "owner": "0xC94943542Aceb1e1060Db4B3004d5Ae5f8261141",
+      "vendor": "0x3F5b96A494061F7338Da529e3047809Ac6a7FB84",
+      "maxPerTxUsdt": 2,
+      "dailyCapUsdt": 4,
+      "expiry": 1789978388,
+      "active": true
+    }
+  ],
+  "configTxBatch": {
+    "blockRange": [20536737, 20536749],
+    "totalPaidBot": 0.0162807,
+    "vaultUsdtFunded": 4.8,
+    "paymasterDepositBot": 0.05
+  },
   "deployTxHashes": {
     "vault": "0x75257b246cf1810963f4b7b2d7c1d6275ef439d2f555ed7f559f1a1fe5ed0629",
     "paymaster": "0xff4ee5861790383ae533cfc37d7dc63549308e056114911b0265f87b5ae69d95",
