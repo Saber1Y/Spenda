@@ -10,10 +10,10 @@ export interface ProofResult {
   live: boolean; // true = fetched on-chain, false = static snapshot fallback
 }
 
-/** Known real values (from the backend run) — the honest fallback if the live read fails. */
+/** Known real values (from the live mainnet pilot) — the honest fallback if the live read fails. */
 const SNAPSHOT: Record<"approved" | "blocked", ProofResult> = {
-  approved: {kind: "approved", amount: 4_000_000n, txHash: PROOF_TX.approved as Hex, live: false},
-  blocked: {kind: "blocked", amount: 6_000_000n, reason: "exceeds maxPerTx", txHash: PROOF_TX.blocked as Hex, live: false},
+  approved: {kind: "approved", amount: 500_000n, txHash: PROOF_TX.approved as Hex, live: false},
+  blocked: {kind: "blocked", amount: 3_000_000n, reason: "exceeds maxPerTx", txHash: PROOF_TX.blocked as Hex, live: false},
 };
 
 const approvedEvent = getAbiItem({abi: vaultAbi, name: "AgentActionApproved"});
@@ -68,11 +68,11 @@ const blockedTopic = encodeEventTopics({abi: [blockedEvent], eventName: "AgentAc
 const SNAPSHOT_FEED: ActivityFeedResult = {
   live: false,
   entries: [
-    {kind: "approved", agent: DEMO.agent, amount: 4_000_000n, txHash: PROOF_TX.approved as Hex, logIndex: 0},
+    {kind: "approved", agent: DEMO.agent, amount: 500_000n, txHash: PROOF_TX.approved as Hex, logIndex: 0},
     {
       kind: "blocked",
       agent: DEMO.agent,
-      amount: 6_000_000n,
+      amount: 3_000_000n,
       reason: "exceeds maxPerTx",
       txHash: PROOF_TX.blocked as Hex,
       logIndex: 1,

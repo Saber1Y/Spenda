@@ -27,8 +27,8 @@ export const BUNDLER_URL = "https://bundler.botchain.ai/rpc";
 
 /** The two headline artifacts for the marketing LiveProof (real, on-chain). */
 export const PROOF_TX = {
-  approved: "0xdbe5d62aec8ef6d9a8d8a9c7c26bf74b1d3e7ed3dbd47733543b0844c9cba50a",
-  blocked: "0x299021d91bdd354f3c9462629b0f10219578be08f1fe9c3e9e187e982e7f25f9",
+  approved: "0xaa18954018e266b28928d20bf7ab0cef37dfcf9aeb9c5861c2aa4e3d0c0fc52d",
+  blocked: "0x5dae47f911325bcfdb21b9a67768bbcdcd28ee1f327bd5bdb35bd57506a1fcc8",
 } as const;
 
 export const MUSD_DECIMALS = 6;
