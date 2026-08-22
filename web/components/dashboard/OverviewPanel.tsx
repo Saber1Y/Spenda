@@ -98,12 +98,12 @@ export function OverviewPanel({className = ""}: {className?: string}) {
           <div className="grid grid-cols-2 gap-6">
             <StatTile
               label="Total approved"
-              value={`${formatMusd(stats.totalApproved)} mUSD`}
+              value={`${formatMusd(stats.totalApproved)} USDT`}
               sub={`${stats.approvedCount} transaction${stats.approvedCount !== 1 ? "s" : ""}`}
             />
             <StatTile
               label="Total blocked"
-              value={`${formatMusd(stats.totalBlocked)} mUSD`}
+              value={`${formatMusd(stats.totalBlocked)} USDT`}
               sub={`${stats.blockedCount} attempt${stats.blockedCount !== 1 ? "s" : ""} held`}
               valueClassName={stats.blockedCount > 0 ? "text-blush" : ""}
             />
@@ -139,7 +139,7 @@ export function OverviewPanel({className = ""}: {className?: string}) {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-body-sm text-fog tabular-nums">{v.count}x</span>
-                      <Chip tone="outline">{formatMusd(v.totalApproved)} mUSD</Chip>
+              <Chip tone="outline">{formatMusd(v.totalApproved)} USDT</Chip>
                     </div>
                   </div>
                 ))}

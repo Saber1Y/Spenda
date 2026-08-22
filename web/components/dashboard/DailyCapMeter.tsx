@@ -9,7 +9,7 @@ export function DailyCapMeter({spent, cap, remaining}: {spent: bigint; cap: bigi
       <div className="flex items-baseline justify-between text-body-sm">
         <span className="text-fog">Spent today</span>
         <span className="text-aubergine tabular-nums">
-          {formatMusd(spent)} / {formatMusd(cap)} mUSD
+          {formatMusd(spent)} / {formatMusd(cap)} USDT
         </span>
       </div>
       <div className="mt-2 h-3 w-full overflow-hidden rounded-pill bg-ash">
@@ -18,7 +18,7 @@ export function DailyCapMeter({spent, cap, remaining}: {spent: bigint; cap: bigi
           style={{width: `${Math.max(pct, spent > 0n ? 4 : 0)}%`}}
         />
       </div>
-      <div className="mt-2 text-caption text-fog tabular-nums">{formatMusd(remaining)} mUSD remaining today</div>
+      <div className="mt-2 text-caption text-fog tabular-nums">{formatMusd(remaining)} USDT remaining today</div>
     </div>
   );
 }

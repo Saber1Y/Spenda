@@ -53,8 +53,8 @@ export function OwnerControls({
     } catch {
       return;
     }
-    pendingAudit.current = {action: "VAULT_FUNDED", metadata: {amount: fundAmt, token: "mUSD"}};
-    write.run({address: active.mockUSD, abi: erc20Abi, functionName: "mint", args: [active.vault, amt]});
+    pendingAudit.current = {action: "VAULT_FUNDED", metadata: {amount: fundAmt, token: "USDT"}};
+    write.run({address: active.mockUSD, abi: erc20Abi, functionName: "transfer", args: [active.vault, amt]});
   };
   const fundPaymaster = () => {
     let amt: bigint;
@@ -99,10 +99,10 @@ export function OwnerControls({
       <div className={`flex flex-col gap-6 ${!isOwner ? "pointer-events-none opacity-50" : ""}`}>
         {/* Fund vault */}
         <div className="flex flex-col gap-3">
-          <Field label="Fund vault (mint mUSD)">
+          <Field label="Fund vault (USDT)">
             <div className="flex gap-2">
               <TextInput inputMode="decimal" value={fundAmt} onChange={(e) => setFundAmt(e.target.value)} className="flex-1" />
-              <Button variant="primary" size="sm" onClick={fund} disabled={disabled}>
+                <Button variant="primary" size="sm" onClick={fund} disabled={disabled}>
                 Fund
               </Button>
             </div>

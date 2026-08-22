@@ -20,6 +20,8 @@ function loadFromStorage(): ActiveVaultConfig | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (!parsed.vaultAddress || !parsed.paymasterAddress || !parsed.agentAddress) return null;
+    if (parsed.chainId && Number(parsed.chainId) !== 677) return null;
+    if (parsed.vaultAddress.toLowerCase() === "0xfb88d06289eadd3ae23ef5c7bef816baffbf4000") return null;
     return {
       vaultAddress: parsed.vaultAddress as Address,
       paymasterAddress: parsed.paymasterAddress as Address,
@@ -61,6 +63,7 @@ export function saveActiveVault(config: ActiveVaultConfig): void {
       vendorAddress: config.vendorAddress,
       mockUSDAddress: config.mockUSDAddress,
       deployBlock: config.deployBlock.toString(),
+      chainId: 677,
     }),
   );
 }

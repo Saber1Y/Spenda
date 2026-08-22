@@ -117,7 +117,7 @@ export default function SpendingPage() {
           <StatTile
             label="Approved"
             value={String(approved.length)}
-            sub={`${formatMusd(totalApproved)} mUSD`}
+            sub={`${formatMusd(totalApproved)} USDT`}
             valueClassName="text-mint-signal"
           />
         </div>
@@ -125,7 +125,7 @@ export default function SpendingPage() {
           <StatTile
             label="Blocked"
             value={String(blocked.length)}
-            sub={`${formatMusd(totalBlocked)} mUSD held`}
+            sub={`${formatMusd(totalBlocked)} USDT held`}
             valueClassName="text-blush"
           />
         </div>
@@ -182,7 +182,7 @@ export default function SpendingPage() {
                 {filtered.map((row) => (
                   <tr key={row.key} className="group">
                     <td className="py-3 pr-4"><StateBadge kind={row.kind} /></td>
-                    <td className="py-3 pr-4 text-[15px] text-obsidian tabular-nums">{formatMusd(row.amount)} mUSD</td>
+                    <td className="py-3 pr-4 text-[15px] text-obsidian tabular-nums">{formatMusd(row.amount)} USDT</td>
                     <td className="py-3 pr-4 text-[15px] text-fog">{truncateAddress(row.target)}</td>
                     <td className="py-3 pr-4 text-[15px] text-fog">
                       {row.kind === "blocked" ? row.reason ?? "policy" : "vendor paid"}

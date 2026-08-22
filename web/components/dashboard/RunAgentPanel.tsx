@@ -36,7 +36,7 @@ function RunResult({run}: {run: RunState}) {
           <Dot width={9} height={9} className="animate-pulse text-periwinkle" />
           {run.phase === "running" ? "sponsoring…" : "waiting for inclusion…"}
         </Chip>
-        <div className="text-body-sm text-fog tabular-nums">{run.amount ? formatMusd(run.amount) : "—"} mUSD</div>
+        <div className="text-body-sm text-fog tabular-nums">{run.amount ? formatMusd(run.amount) : "—"} USDT</div>
       </Row>
     );
   }
@@ -56,7 +56,7 @@ function RunResult({run}: {run: RunState}) {
       <Row>
         {o ? <StateBadge kind={o.kind} /> : <Chip tone="mint">included</Chip>}
         <div className="min-w-0 flex-1 text-body-sm">
-          <span className="text-aubergine tabular-nums">{run.amount ? formatMusd(run.amount) : "—"} mUSD</span>{" "}
+          <span className="text-aubergine tabular-nums">{run.amount ? formatMusd(run.amount) : "—"} USDT</span>{" "}
           <span className="text-fog">
             {o?.kind === "blocked" ? `held · ${o.reason ?? "policy"}` : o?.kind === "approved" ? "approved · vendor paid" : "landed"}
           </span>
@@ -94,7 +94,7 @@ export function RunAgentPanel({refetch, className = ""}: {refetch: () => void; c
           agent: active.agent,
           vault: active.vault,
           paymaster: active.paymaster,
-          mockUSD: active.mockUSD,
+           token: active.mockUSD,
           vendor: active.vendor,
         }),
       });
@@ -142,17 +142,17 @@ export function RunAgentPanel({refetch, className = ""}: {refetch: () => void; c
         outcome is whatever the fence returns, not scripted.
       </p>
       <div className="flex flex-wrap items-center gap-3">
-        <Button variant="primary" size="sm" onClick={() => doRun(4_000_000n)} disabled={busy || configured === null}>
-          Spend 4 mUSD
+        <Button variant="primary" size="sm" onClick={() => doRun(1_000_000n)} disabled={busy || configured === null}>
+          Spend 1 USDT
         </Button>
-        <Button variant="secondary" size="sm" onClick={() => doRun(6_000_000n)} disabled={busy || configured === null}>
-          Spend 6 mUSD
+          <Button variant="secondary" size="sm" onClick={() => doRun(3_000_000n)} disabled={busy || configured === null}>
+           Try 3 USDT (blocked)
         </Button>
         <div className="flex items-center gap-2">
           <input
             type="number"
             inputMode="decimal"
-            placeholder="Custom mUSD"
+            placeholder="Custom USDT"
             value={customAmount}
             onChange={(e) => setCustomAmount(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") doCustomRun(); }}

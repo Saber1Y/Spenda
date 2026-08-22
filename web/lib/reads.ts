@@ -16,7 +16,7 @@ export interface VaultState {
   policy: Policy;
   remainingDailyCap: bigint;
   targetAllowed: boolean; // vendor
-  tokenAllowed: boolean; // mUSD
+  tokenAllowed: boolean; // official mainnet USDT
   paymasterDeposit: bigint;
   agentNative: bigint;
   agentDeposit: bigint;

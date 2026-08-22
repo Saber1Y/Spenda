@@ -84,8 +84,8 @@ export function PolicyPanel({
           </div>
 
           <div className="grid grid-cols-2 gap-6">
-            <StatTile label="Per-tx cap" value={<>{formatMusd(state.policy.maxPerTx)} <span className="text-body text-fog">mUSD</span></>} />
-            <StatTile label="Daily cap" value={<>{formatMusd(state.policy.dailyCap)} <span className="text-body text-fog">mUSD</span></>} />
+            <StatTile label="Per-tx cap" value={<>{formatMusd(state.policy.maxPerTx)} <span className="text-body text-fog">USDT</span></>} />
+            <StatTile label="Daily cap" value={<>{formatMusd(state.policy.dailyCap)} <span className="text-body text-fog">USDT</span></>} />
           </div>
 
           <div>
@@ -97,7 +97,7 @@ export function PolicyPanel({
               </Chip>
               <Chip tone={state.tokenAllowed ? "lavender" : "outline"}>
                 {state.tokenAllowed ? <Check width={12} height={12} /> : null}
-                mUSD {truncateAddress(CONTRACTS.mockUSD)}
+                USDT {truncateAddress(CONTRACTS.mockUSD)}
               </Chip>
             </div>
           </div>
@@ -146,10 +146,10 @@ function PolicyForm({
   return (
     <div className="flex flex-col gap-5">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Field label="Per-tx cap (mUSD)">
+            <Field label="Per-tx cap (USDT)">
           <TextInput inputMode="decimal" value={maxPerTx} onChange={(e) => setMaxPerTx(e.target.value)} />
         </Field>
-        <Field label="Daily cap (mUSD)">
+            <Field label="Daily cap (USDT)">
           <TextInput inputMode="decimal" value={dailyCap} onChange={(e) => setDailyCap(e.target.value)} />
         </Field>
         <Field label="Expiry (days from now)" hint="0 = never expires">

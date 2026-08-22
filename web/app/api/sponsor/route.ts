@@ -15,9 +15,10 @@ import {
   isAddress,
 } from "viem";
 import {privateKeyToAccount} from "viem/accounts";
+import {randomBytes} from "node:crypto";
 import {sponsor, type SignerConfig} from "@/lib/sponsor/signer";
 import {toPacked, type UserOpFields} from "@/lib/sponsor/userOp";
-import {CONTRACTS} from "@/lib/contracts";
+import {CONTRACTS, DEMO} from "@/lib/contracts";
 import type {BundlerRpcSchema, UnpackedUserOp} from "@/lib/bundlerSchema";
 
 export const runtime = "nodejs"; // never edge — needs process.env secrets + node crypto
@@ -44,7 +45,16 @@ const bundler = createPublicClient({transport: http(BUNDLER), rpcSchema: rpcSche
 function loadKeys(): {signerKey?: Hex; ownerKey?: Hex; configured: boolean} {
   const signerKey = process.env.VERIFYING_SIGNER_KEY as Hex | undefined;
   const ownerKey = process.env.AGENT_OWNER_KEY as Hex | undefined;
-  return {signerKey, ownerKey, configured: !!signerKey && !!ownerKey};
+  if (!signerKey || !ownerKey || !/^0x[0-9a-fA-F]{64}$/.test(signerKey) || !/^0x[0-9a-fA-F]{64}$/.test(ownerKey)) {
+    return {configured: false};
+  }
+  try {
+    const signerMatches = privateKeyToAccount(signerKey).address.toLowerCase() === CONTRACTS.verifyingSigner.toLowerCase();
+    const ownerMatches = privateKeyToAccount(ownerKey).address.toLowerCase() === DEMO.agentOwnerEOA.toLowerCase();
+    return {signerKey, ownerKey, configured: signerMatches && ownerMatches};
+  } catch {
+    return {configured: false};
+  }
 }
 
 // ---- in-memory rate limit: token bucket + min gap (spam can't drain the paymaster deposit) ----
@@ -192,12 +202,25 @@ export async function POST(req: NextRequest) {
   }
   const b = body as Record<string, unknown>;
   const authorization = req.headers.get("authorization");
-  if (!b.intentId) return NextResponse.json({error: "intent_id_required"}, {status: 400});
-  const intentPreparation = await prepareIntentExecution(b.intentId, authorization);
-  if ("error" in intentPreparation) {
-    return NextResponse.json({error: intentPreparation.error}, {status: intentPreparation.status});
+  let execution: Record<string, unknown>;
+  if (b.intentId) {
+    const intentPreparation = await prepareIntentExecution(b.intentId, authorization);
+    if ("error" in intentPreparation) {
+      return NextResponse.json({error: intentPreparation.error}, {status: intentPreparation.status});
+    }
+    execution = intentPreparation.execution;
+  } else if (process.env.DIRECT_PILOT_ENABLED === "true") {
+    execution = {
+      amount: b.amountBaseUnits,
+      agent: b.agent,
+      vault: b.vault,
+      token: b.token ?? b.mockUSD,
+      recipient: b.vendor,
+      action_id: `0x${randomBytes(32).toString("hex")}`,
+    };
+  } else {
+    return NextResponse.json({error: "intent_id_required", message: "Create an intent before executing."}, {status: 400});
   }
-  const execution = intentPreparation.execution;
   const amount = parseAmount(execution.amount);
   if (amount === null) {
     return NextResponse.json({error: "invalid_amount", message: "amountBaseUnits must be a positive integer."}, {status: 400});
@@ -292,7 +315,9 @@ export async function POST(req: NextRequest) {
     };
 
     const sent = await bundler.request({method: "eth_sendUserOperation", params: [unpacked, EP]});
-    if (authorization) await finalizeIntentExecution(execution.intent_id, execution.attempt_id, sent, authorization);
+    if (authorization && typeof execution.intent_id === "string" && typeof execution.attempt_id === "string") {
+      await finalizeIntentExecution(execution.intent_id, execution.attempt_id, sent, authorization);
+    }
     return NextResponse.json({userOpHash: sent, amountBaseUnits: amount.toString()});
   } catch (e) {
     const err = e as {details?: string; shortMessage?: string; message?: string};

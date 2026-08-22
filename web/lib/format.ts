@@ -1,7 +1,7 @@
 import {formatUnits, type Address} from "viem";
 import {MUSD_DECIMALS} from "./contracts";
 
-/** mUSD is 6 decimals — base-unit math everywhere, format only at display. */
+/** Mainnet USDT uses 6 decimals — base-unit math everywhere, format only at display. */
 export function formatMusd(base: bigint, opts: {maxFractionDigits?: number} = {}): string {
   const s = formatUnits(base, MUSD_DECIMALS);
   const n = Number(s);

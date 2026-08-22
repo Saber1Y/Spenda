@@ -277,7 +277,7 @@ export default function OverviewPage() {
               ) : (
                 <>
                   {formatMusd(state?.vaultBalance ?? 0n)}{" "}
-                  <span className="text-fog text-body">mUSD</span>
+                  <span className="text-fog text-body">USDT</span>
                 </>
               )}
             </div>
@@ -300,7 +300,7 @@ export default function OverviewPage() {
                 <>
                   {formatMusd(state?.policy.spentToday ?? 0n)} /{" "}
                   {formatMusd(state?.policy.dailyCap ?? 0n)}{" "}
-                  <span className="text-fog text-body">mUSD</span>
+                  <span className="text-fog text-body">USDT</span>
                 </>
               )}
             </div>
@@ -321,9 +321,9 @@ export default function OverviewPage() {
             </div>
             <span className="text-[13px] text-fog">
               {txStats
-                ? `${formatMusd(txStats.totalApproved)} mUSD`
+                ? `${formatMusd(txStats.totalApproved)} USDT`
                 : approved.length > 0
-                  ? `${formatMusd(approved.reduce((s, a) => s + a.amount, 0n))} mUSD`
+                  ? `${formatMusd(approved.reduce((s, a) => s + a.amount, 0n))} USDT`
                   : "no spend yet"}
             </span>
           </div>
@@ -340,9 +340,9 @@ export default function OverviewPage() {
             </div>
             <span className="text-[13px] text-fog">
               {txStats
-                ? `${formatMusd(txStats.totalBlocked)} mUSD held`
+                ? `${formatMusd(txStats.totalBlocked)} USDT held`
                 : blocked.length > 0
-                  ? `${formatMusd(blocked.reduce((s, a) => s + a.amount, 0n))} mUSD held`
+                  ? `${formatMusd(blocked.reduce((s, a) => s + a.amount, 0n))} USDT held`
                   : "fence clean"}
             </span>
           </div>
@@ -414,13 +414,13 @@ export default function OverviewPage() {
             <div>
               <span className="text-[13px] text-fog">Per-tx Cap</span>
               <div className="mt-1 text-[15px] text-obsidian tabular-nums">
-                {formatMusd(state?.policy.maxPerTx ?? 0n)} mUSD
+                {formatMusd(state?.policy.maxPerTx ?? 0n)} USDT
               </div>
             </div>
             <div>
               <span className="text-[13px] text-fog">Daily Cap</span>
               <div className="mt-1 text-[15px] text-obsidian tabular-nums">
-                {formatMusd(state?.policy.dailyCap ?? 0n)} mUSD
+                {formatMusd(state?.policy.dailyCap ?? 0n)} USDT
               </div>
             </div>
             <div>
@@ -532,7 +532,7 @@ export default function OverviewPage() {
                         <StateBadge kind={a.kind} />
                       </td>
                       <td className="py-3 pr-4 text-[15px] text-obsidian tabular-nums">
-                        {formatMusd(a.amount)} mUSD
+                        {formatMusd(a.amount)} USDT
                       </td>
                       <td className="py-3 pr-4 text-[15px] text-fog">
                         {truncateAddress(a.target)}

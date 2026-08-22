@@ -73,14 +73,14 @@ export default function PoliciesPage() {
         <div className="rounded-[16px] border border-ash bg-bone p-6">
           <StatTile
             label="Per-tx Cap"
-            value={loading && !state ? <span className="inline-block h-6 w-24 animate-pulse rounded bg-ash" /> : <>{formatMusd(state?.policy.maxPerTx ?? 0n)} <span className="text-fog text-body">mUSD</span></>}
+              value={loading && !state ? <span className="inline-block h-6 w-24 animate-pulse rounded bg-ash" /> : <>{formatMusd(state?.policy.maxPerTx ?? 0n)} <span className="text-fog text-body">USDT</span></>}
           />
         </div>
 
         <div className="rounded-[16px] border border-ash bg-bone p-6">
           <StatTile
             label="Daily Cap"
-            value={loading && !state ? <span className="inline-block h-6 w-24 animate-pulse rounded bg-ash" /> : <>{formatMusd(state?.policy.dailyCap ?? 0n)} <span className="text-fog text-body">mUSD</span></>}
+              value={loading && !state ? <span className="inline-block h-6 w-24 animate-pulse rounded bg-ash" /> : <>{formatMusd(state?.policy.dailyCap ?? 0n)} <span className="text-fog text-body">USDT</span></>}
           />
         </div>
       </div>
@@ -104,7 +104,7 @@ export default function PoliciesPage() {
             </Chip>
             <Chip tone={state.tokenAllowed ? "lavender" : "outline"}>
               {state.tokenAllowed ? <Check width={12} height={12} /> : null}
-              Token: mUSD ({truncateAddress(active.mockUSD)})
+              Token: USDT ({truncateAddress(active.mockUSD)})
             </Chip>
           </div>
         </div>
@@ -164,10 +164,10 @@ function PolicyForm({
   return (
     <div className="flex flex-col gap-5">
       <div className="grid grid-cols-2 gap-4">
-        <Field label="Per-tx cap (mUSD)">
+              <Field label="Per-tx cap (USDT)">
           <TextInput inputMode="decimal" value={maxPerTx} onChange={(e) => setMaxPerTx(e.target.value)} />
         </Field>
-        <Field label="Daily cap (mUSD)">
+              <Field label="Daily cap (USDT)">
           <TextInput inputMode="decimal" value={dailyCap} onChange={(e) => setDailyCap(e.target.value)} />
         </Field>
         <Field label="Expiry (days from now)" hint="0 = never expires">

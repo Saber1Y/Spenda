@@ -9,6 +9,7 @@ export const CONTRACTS = {
   vault: "0xf23147Df55089eA6bA87BF24bb4eEE6f7Cea182b",
   factory: "0xe66dd4f6A29ab1843A39Df47f0D0f9e46F3B858f",
   paymaster: "0xde609E52D9164C227D4F174D6260289bc3E62eC2",
+  verifyingSigner: "0xc06859dC7cf92360a79B7C6684fAD32cAE674f8B",
 } as const satisfies Record<string, Address>;
 
 /** Deployed agent + its owner EOA + the allowlisted vendor. */
@@ -31,6 +32,7 @@ export const PROOF_TX = {
 } as const;
 
 export const MUSD_DECIMALS = 6;
+export const SPEND_TOKEN_SYMBOL = "USDT";
 
 /**
  * Returns the full set of contract addresses, using the active vault from
@@ -55,7 +57,7 @@ export function getActiveContracts() {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (parsed.vaultAddress && parsed.paymasterAddress && parsed.agentAddress) {
-        return {
+        if ((!parsed.chainId || Number(parsed.chainId) === 677) && parsed.vaultAddress.toLowerCase() !== "0xfb88d06289eadd3ae23ef5c7bef816baffbf4000") return {
           entryPoint: CONTRACTS.entryPoint as Address,
           mockUSD: parsed.mockUSDAddress ?? CONTRACTS.mockUSD,
           vault: parsed.vaultAddress as Address,
@@ -114,7 +116,6 @@ export const erc20Abi = parseAbi([
   "function balanceOf(address) view returns (uint256)",
   "function decimals() view returns (uint8)",
   "function symbol() view returns (string)",
-  "function mint(address to,uint256 amount)",
   "function transfer(address to,uint256 amount) returns (bool)",
   "event Transfer(address indexed from,address indexed to,uint256 value)",
 ]);

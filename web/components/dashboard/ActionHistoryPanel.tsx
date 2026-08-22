@@ -14,7 +14,7 @@ function ActionRow({action}: {action: AgentAction}) {
       <StateBadge kind={action.kind} />
       <div className="min-w-0 flex-1">
         <div className="text-body text-aubergine tabular-nums">
-          {formatMusd(action.amount)} mUSD <span className="text-fog">→ {truncateAddress(action.target)}</span>
+          {formatMusd(action.amount)} USDT <span className="text-fog">→ {truncateAddress(action.target)}</span>
         </div>
         <div className="text-body-sm text-fog">
           {blocked ? `held · ${action.reason ?? "policy"}` : "approved · vendor paid"}

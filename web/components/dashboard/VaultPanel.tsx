@@ -39,7 +39,7 @@ export function VaultPanel({
             label="Vault balance"
             value={
               <>
-                {formatMusd(state.vaultBalance)} <span className="text-body text-fog">mUSD</span>
+                {formatMusd(state.vaultBalance)} <span className="text-body text-fog">USDT</span>
               </>
             }
             sub={state.vaultBalance === 0n ? "fund the vault to enable spends" : undefined}
