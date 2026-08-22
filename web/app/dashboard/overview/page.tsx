@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { useAccount } from "wagmi";
 import { getActiveContracts } from "@/lib/contracts";
 import { useVaultState, useActionHistory } from "@/lib/hooks";
-import { useVaultEntities, useTransactionEntities, useActiveVaultEntity } from "@/lib/base44-hooks";
 import {
   isSameAddress,
   formatMusd,
@@ -195,34 +194,16 @@ export default function OverviewPage() {
   const { data: state, loading, error, refetch } = useVaultState(agent);
   const history = useActionHistory(agent);
   const { address, isConnected } = useAccount();
-  const vaultEntity = useActiveVaultEntity();
-  const vaultId = vaultEntity?.id;
-  const { data: transactions, refetch: refetchTx } = useTransactionEntities(vaultId);
 
   const isOwner =
     isConnected && !!state && isSameAddress(address, state.vaultOwner);
 
+  // Authoritative source is the on-chain event log for THIS agent only;
+  // Base44-synced rows can contain stale testnet data and must not drive KPIs.
   const approved = history.actions.filter((a) => a.kind === "approved");
   const blocked = history.actions.filter((a) => a.kind === "blocked");
-
-  const txStats = useMemo(() => {
-    if (!transactions) return null;
-    let totalApproved = 0n;
-    let totalBlocked = 0n;
-    let approvedCount = 0;
-    let blockedCount = 0;
-    for (const tx of transactions) {
-      const amt = BigInt(tx.amount ?? "0");
-      if (tx.status === "EXECUTED" || tx.status === "APPROVED") {
-        totalApproved += amt;
-        approvedCount++;
-      } else if (tx.status === "BLOCKED") {
-        totalBlocked += amt;
-        blockedCount++;
-      }
-    }
-    return { totalApproved, totalBlocked, approvedCount, blockedCount };
-  }, [transactions]);
+  const totalApproved = approved.reduce((s, a) => s + a.amount, 0n);
+  const totalBlocked = blocked.reduce((s, a) => s + a.amount, 0n);
 
   return (
     <div className="max-w-[1200px]">
@@ -255,7 +236,6 @@ export default function OverviewPage() {
             onClick={() => {
               refetch();
               history.refetch();
-              refetchTx();
             }}
             disabled={loading}
           >
@@ -318,14 +298,10 @@ export default function OverviewPage() {
               className="mt-2 font-heading text-heading-sm text-mint-signal"
               style={{ fontWeight: 350 }}
             >
-              {txStats ? txStats.approvedCount : approved.length}
+              {approved.length}
             </div>
             <span className="text-[13px] text-fog">
-              {txStats
-                ? `${formatMusd(txStats.totalApproved)} USDT`
-                : approved.length > 0
-                  ? `${formatMusd(approved.reduce((s, a) => s + a.amount, 0n))} USDT`
-                  : "no spend yet"}
+              {approved.length > 0 ? `${formatMusd(totalApproved)} USDT` : "no spend yet"}
             </span>
           </div>
 
@@ -337,14 +313,10 @@ export default function OverviewPage() {
               className="mt-2 font-heading text-heading-sm"
               style={{ fontWeight: 350, color: "#f08080" }}
             >
-              {txStats ? txStats.blockedCount : blocked.length}
+              {blocked.length}
             </div>
             <span className="text-[13px] text-fog">
-              {txStats
-                ? `${formatMusd(txStats.totalBlocked)} USDT held`
-                : blocked.length > 0
-                  ? `${formatMusd(blocked.reduce((s, a) => s + a.amount, 0n))} USDT held`
-                  : "fence clean"}
+              {blocked.length > 0 ? `${formatMusd(totalBlocked)} USDT held` : "fence clean"}
             </span>
           </div>
 
@@ -444,7 +416,6 @@ export default function OverviewPage() {
             refetch={() => {
               refetch();
               history.refetch();
-              refetchTx();
             }}
           />
         </div>
@@ -458,20 +429,20 @@ export default function OverviewPage() {
             </h2>
             <div className="flex items-center gap-6">
               <ApprovedBlockedDonut
-                approved={txStats?.approvedCount ?? approved.length}
-                blocked={txStats?.blockedCount ?? blocked.length}
+                approved={approved.length}
+                blocked={blocked.length}
               />
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2">
                   <span className="h-3 w-3 rounded-full bg-mint-signal" />
                   <span className="text-[13px] text-aubergine">
-                    {txStats?.approvedCount ?? approved.length} approved
+                    {approved.length} approved
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="h-3 w-3 rounded-full bg-blush-mist" />
                   <span className="text-[13px] text-aubergine">
-                    {txStats?.blockedCount ?? blocked.length} blocked
+                    {blocked.length} blocked
                   </span>
                 </div>
               </div>
