@@ -6,7 +6,7 @@ import {useAccount, usePublicClient, useWalletClient} from "wagmi";
 import {getActiveContracts, MUSD_DECIMALS, vaultAbi} from "@/lib/contracts";
 import {useActiveVaultEntity, useBudgetEntities, useVaultAgentEntities} from "@/lib/base44-hooks";
 import {getBase44Client} from "@/lib/base44";
-import {createRestrictedAgent, revokeRestrictedAgent, updateAgentBudget} from "@/lib/createAgent";
+import {revokeRestrictedAgent, updateAgentBudget} from "@/lib/createAgent";
 import {formatMusd, truncateAddress} from "@/lib/format";
 import {explorerAddress} from "@/lib/chain";
 import {Chip, CopyChip, TxChip} from "@/components/ui/Chip";
@@ -59,37 +59,59 @@ export default function AgentsPage() {
     (agent) => agent.address && activeOnChain?.[agent.address.toLowerCase()] === true,
   );
 
-  const create = async (input: {name: string; description: string; max: string; daily: string; days: string; salt: string; capabilities: string}) => {
-    if (!vault?.id || !wallet || !publicClient || !address) return setMessage("Connect the vault owner wallet first.");
+  const create = async (input: {name: string; description: string; max: string; daily: string; days: string; salt: string; capabilities: string; vendor: string}) => {
+    if (!vault?.id || !wallet || !address) return setMessage("Connect your wallet first.");
     setBusy(true);
     try {
-      const result = await createRestrictedAgent(wallet, publicClient, {
-        factory: active.factory,
-        vault: active.vault,
-        token: active.mockUSD,
-        target: active.vendor,
-        owner: address,
-        salt: BigInt(input.salt || "0"),
-        maxPerTransaction: parseUnits(input.max || "0", MUSD_DECIMALS),
-        dailyCap: parseUnits(input.daily || "0", MUSD_DECIMALS),
-        expiresAt: BigInt(Math.floor(Date.now() / 1000) + Math.max(1, Number(input.days || "30")) * 86400),
+      const maxVal = Number(input.max);
+      const dailyVal = Number(input.daily);
+      if (!(maxVal > 0) || maxVal > 10) throw new Error("Max per transaction must be between 0 and 10 USDT.");
+      if (!(dailyVal >= maxVal) || dailyVal > 25) throw new Error("Daily cap must be at least the per-tx cap and at most 25 USDT.");
+      const salt = BigInt(input.salt || "0").toString();
+      const daysNum = String(Math.max(1, Math.min(365, Math.floor(Number(input.days || "30")))));
+      const vendor = input.vendor;
+      // Message must match the server-side provisioning message byte-for-byte.
+      const message = [
+        "Spenda agent provisioning",
+        "chainId: 677",
+        `owner: ${address.toLowerCase()}`,
+        `salt: ${salt}`,
+        `maxPerTxUsdt: ${input.max}`,
+        `dailyCapUsdt: ${input.daily}`,
+        `expiryDays: ${daysNum}`,
+        `vendor: ${vendor.toLowerCase()}`,
+      ].join("\n");
+      const signature = await wallet.signMessage({message});
+      const response = await fetch("/api/provision", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          owner: address,
+          salt,
+          maxPerTx: input.max,
+          dailyCap: input.daily,
+          expiryDays: daysNum,
+          vendor,
+          signature,
+        }),
       });
-      const client = getBase44Client();
-      const response = await client.functions.invoke("registerAgent", {
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error ?? payload?.message ?? "Provisioning failed");
+      const registration = await getBase44Client().functions.invoke("registerAgent", {
         vault_id: vault.id,
-        agent_address: result.agent,
+        agent_address: payload.agent,
         owner_eoa: address,
         factory_address: active.factory,
         vault_address: active.vault,
         paymaster_address: active.paymaster,
-        salt: input.salt || "0",
+        salt,
         display_name: input.name,
         description: input.description,
         capabilities: input.capabilities.split(",").map((item) => item.trim()).filter(Boolean),
       });
-      const payload = response?.data ?? response;
-      if (!payload?.ok) throw new Error(payload?.error ?? "Agent registration failed");
-      setMessage(`Agent ${truncateAddress(result.agent)} registered. ${result.hashes.length} on-chain transactions confirmed.`);
+      const registered = registration?.data ?? registration;
+      if (!registered?.ok) throw new Error(registered?.error ?? "Agent registration failed");
+      setMessage(`Agent ${truncateAddress(payload.agent)} created and activated. ${payload.txHashes.length} on-chain transactions confirmed.`);
       setShowCreate(false);
       refetch();
       refetchBudgets();
@@ -127,13 +149,13 @@ export default function AgentsPage() {
     }
   };
 
-  return <div className="max-w-[1200px] px-8 py-8"><div className="flex items-start justify-between"><div><h1 className="font-heading text-heading text-aubergine" style={{fontWeight: 350}}>Agents</h1><p className="mt-1 text-[15px] text-fog">Multiple restricted agents, one policy-controlled vault.</p></div><Button variant="primary" size="sm" onClick={() => setShowCreate((value) => !value)} disabled={!isConnected}>{showCreate ? "Close" : "Create agent"}</Button></div>{message && <p className="mt-4 rounded-[12px] border border-ash bg-bone px-4 py-3 text-body-sm text-fog">{message}</p>}{showCreate && <div className="mt-6"><CreateAgentForm onSubmit={create} busy={busy} /></div>}<div className="mt-8 grid gap-5 lg:grid-cols-2">{visibleAgents.map((agent) => { const budget = budgets?.find((item) => item.agent_id === agent.id || item.agent_address?.toLowerCase() === agent.address?.toLowerCase()); return <AgentCard key={agent.id} agent={agent} budget={budget} editing={editing === agent.id} busy={busy} onEdit={() => setEditing(editing === agent.id ? null : agent.id)} onLifecycle={(status, values) => updateLifecycle(agent, budget ?? {}, status, values)} />; })}</div>{(!agents || visibleAgents.length === 0) && !loading && activeOnChain !== null && <Panel title="No active agents" subtitle="verified against the live vault"><p className="text-body-sm text-fog">Registered records without an active on-chain policy are hidden. An agent account is not a fund custodian. It can only request the vault&apos;s configured spend function.</p></Panel>}</div>;
+  return <div className="max-w-[1200px] px-8 py-8"><div className="flex items-start justify-between"><div><h1 className="font-heading text-heading text-aubergine" style={{fontWeight: 350}}>Agents</h1><p className="mt-1 text-[15px] text-fog">Multiple restricted agents, one policy-controlled vault.</p></div><Button variant="primary" size="sm" onClick={() => setShowCreate((value) => !value)} disabled={!isConnected}>{showCreate ? "Close" : "Create agent"}</Button></div>{message && <p className="mt-4 rounded-[12px] border border-ash bg-bone px-4 py-3 text-body-sm text-fog">{message}</p>}{showCreate && <div className="mt-6"><CreateAgentForm onSubmit={create} busy={busy} vendorDefault={active.vendor} /></div>}<div className="mt-8 grid gap-5 lg:grid-cols-2">{visibleAgents.map((agent) => { const budget = budgets?.find((item) => item.agent_id === agent.id || item.agent_address?.toLowerCase() === agent.address?.toLowerCase()); return <AgentCard key={agent.id} agent={agent} budget={budget} editing={editing === agent.id} busy={busy} onEdit={() => setEditing(editing === agent.id ? null : agent.id)} onLifecycle={(status, values) => updateLifecycle(agent, budget ?? {}, status, values)} />; })}</div>{(!agents || visibleAgents.length === 0) && !loading && activeOnChain !== null && <Panel title="No active agents" subtitle="verified against the live vault"><p className="text-body-sm text-fog">Registered records without an active on-chain policy are hidden. An agent account is not a fund custodian. It can only request the vault&apos;s configured spend function.</p></Panel>}</div>;
 }
 
-function CreateAgentForm({onSubmit, busy}: {onSubmit: (input: {name: string; description: string; max: string; daily: string; days: string; salt: string; capabilities: string}) => void; busy: boolean}) {
-  const [input, setInput] = useState({name: "Procurement Agent", description: "Autonomous procurement and service payments", max: "50", daily: "250", days: "30", salt: "1", capabilities: "procurement, services"});
+function CreateAgentForm({onSubmit, busy, vendorDefault}: {onSubmit: (input: {name: string; description: string; max: string; daily: string; days: string; salt: string; capabilities: string; vendor: string}) => void; busy: boolean; vendorDefault: string}) {
+  const [input, setInput] = useState({name: "My Agent", description: "Restricted spending agent", max: "5", daily: "10", days: "30", salt: String(Math.floor(Math.random() * 1_000_000)), capabilities: "general", vendor: vendorDefault});
   const set = (key: keyof typeof input, value: string) => setInput((current) => ({...current, [key]: value}));
-  return <Panel title="Create restricted agent" subtitle="owner wallet transaction sequence"><div className="grid gap-4 md:grid-cols-2"><Field label="Name"><TextInput value={input.name} onChange={(event) => set("name", event.target.value)} /></Field><Field label="Capabilities"><TextInput value={input.capabilities} onChange={(event) => set("capabilities", event.target.value)} /></Field><Field label="Description"><TextInput value={input.description} onChange={(event) => set("description", event.target.value)} /></Field><Field label="Salt"><TextInput value={input.salt} onChange={(event) => set("salt", event.target.value)} inputMode="numeric" /></Field><Field label="Max transaction (USDT)"><TextInput value={input.max} onChange={(event) => set("max", event.target.value)} inputMode="decimal" /></Field><Field label="Daily cap (USDT)"><TextInput value={input.daily} onChange={(event) => set("daily", event.target.value)} inputMode="decimal" /></Field><Field label="Expiry (days)"><TextInput value={input.days} onChange={(event) => set("days", event.target.value)} inputMode="numeric" /></Field></div><Button className="mt-5" variant="primary" size="sm" onClick={() => onSubmit(input)} disabled={busy}>{busy ? "Confirming wallet transactions..." : "Create and configure agent"}</Button></Panel>;
+  return <Panel title="Create your agent" subtitle="sign a provisioning request - the treasury activates your policy on-chain"><div className="grid gap-4 md:grid-cols-2"><Field label="Name"><TextInput value={input.name} onChange={(event) => set("name", event.target.value)} /></Field><Field label="Capabilities"><TextInput value={input.capabilities} onChange={(event) => set("capabilities", event.target.value)} /></Field><Field label="Description"><TextInput value={input.description} onChange={(event) => set("description", event.target.value)} /></Field><Field label="Salt"><TextInput value={input.salt} onChange={(event) => set("salt", event.target.value)} inputMode="numeric" /></Field><Field label="Vendor / payee address"><TextInput value={input.vendor} onChange={(event) => set("vendor", event.target.value)} spellCheck={false} /></Field><Field label="Max transaction (USDT)"><TextInput value={input.max} onChange={(event) => set("max", event.target.value)} inputMode="decimal" /></Field><Field label="Daily cap (USDT)"><TextInput value={input.daily} onChange={(event) => set("daily", event.target.value)} inputMode="decimal" /></Field><Field label="Expiry (days, max 365)"><TextInput value={input.days} onChange={(event) => set("days", event.target.value)} inputMode="numeric" /></Field></div><p className="mt-4 text-caption text-fog">Caps are bounded server-side: max 10 USDT per transaction, 25 USDT per day. Your wallet only signs one message; it never pays gas.</p><Button className="mt-5" variant="primary" size="sm" onClick={() => onSubmit(input)} disabled={busy}>{busy ? "Provisioning on-chain..." : "Sign and create agent"}</Button></Panel>;
 }
 
 function AgentCard({agent, budget, editing, busy, onEdit, onLifecycle}: {agent: Record<string, any>; budget?: Record<string, any>; editing: boolean; busy: boolean; onEdit: () => void; onLifecycle: (status: "active" | "paused" | "revoked", values?: {max: string; daily: string; days: string}) => void}) {
