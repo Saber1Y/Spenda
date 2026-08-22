@@ -1,15 +1,9 @@
 import {NextResponse, type NextRequest} from "next/server";
 import {
-  createPublicClient,
-  http,
   encodeFunctionData,
-  encodeAbiParameters,
-  parseAbiParameters,
   parseAbi,
-  concat,
   slice,
   toHex,
-  rpcSchema,
   type Address,
   type Hex,
   isAddress,
@@ -18,28 +12,26 @@ import {privateKeyToAccount} from "viem/accounts";
 import {randomBytes} from "node:crypto";
 import {sponsor, type SignerConfig} from "@/lib/sponsor/signer";
 import {toPacked, type UserOpFields} from "@/lib/sponsor/userOp";
+import {
+  CHAIN_ID,
+  EP,
+  MAX_AMOUNT,
+  PM_PGL,
+  PM_VGL,
+  bundler,
+  chainNow,
+  classify,
+  estimateFloored,
+  gasPrice,
+  parseAmount,
+  rpc,
+  unpackedForEstimate,
+} from "@/lib/sponsor/userFlow";
+import type {UnpackedUserOp} from "@/lib/bundlerSchema";
 import {CONTRACTS, DEMO} from "@/lib/contracts";
-import type {BundlerRpcSchema, UnpackedUserOp} from "@/lib/bundlerSchema";
 
 export const runtime = "nodejs"; // never edge — needs process.env secrets + node crypto
 export const dynamic = "force-dynamic";
-
-const RPC = "https://rpc.botchain.ai";
-const BUNDLER = "https://bundler.botchain.ai/rpc";
-const EP = CONTRACTS.entryPoint as Address;
-const CHAIN_ID = 677n;
-
-// Frozen-gas floors (the C5 callGasLimit-bug lesson: Skandha's per-op breakdown is unreliable, so
-// we floor every estimate at proven minimums). Account is already deployed → no initCode.
-const FLOOR_CGL = 250_000n;
-const FLOOR_VGL = 200_000n;
-const FLOOR_PVG = 60_000n;
-const PM_VGL = 300_000n;
-const PM_PGL = 100_000n;
-const MAX_AMOUNT = 100_000_000n; // 100 mUSD sane ceiling
-
-const rpc = createPublicClient({transport: http(RPC)});
-const bundler = createPublicClient({transport: http(BUNDLER), rpcSchema: rpcSchema<BundlerRpcSchema>()});
 
 // ---- server-only keys (NEVER NEXT_PUBLIC_, never returned to the client) ----
 function loadKeys(): {signerKey?: Hex; ownerKey?: Hex; configured: boolean} {
@@ -72,23 +64,12 @@ function rateLimit(): {ok: boolean; retryAfter?: number} {
   return {ok: true};
 }
 
-function parseAmount(v: unknown): bigint | null {
-  if (typeof v === "number") return Number.isInteger(v) && v > 0 ? BigInt(v) : null;
-  if (typeof v === "string" && /^[0-9]+$/.test(v)) {
-    const b = BigInt(v);
-    return b > 0n ? b : null;
-  }
-  return null;
-}
-
 const executeAbi = parseAbi(["function execute(address,uint256,bytes)"]);
 const executeSpendAbi = parseAbi(["function executeSpend(address,address,uint256,bytes,bytes32)"]);
 const getNonceAbi = parseAbi(["function getNonce(address,uint192) view returns (uint256)"]);
 const getUserOpHashAbi = parseAbi([
   "function getUserOpHash((address sender,uint256 nonce,bytes initCode,bytes callData,bytes32 accountGasLimits,uint256 preVerificationGas,bytes32 gasFees,bytes paymasterAndData,bytes signature) userOp) view returns (bytes32)",
 ]);
-
-const bigMax = (a: bigint, b: bigint) => (a > b ? a : b);
 
 async function prepareIntentExecution(intentId: unknown, authorization: string | null) {
   if (typeof intentId !== "string" || !intentId) {
@@ -116,73 +97,6 @@ async function finalizeIntentExecution(intentId: string, attemptId: string, user
     body: JSON.stringify({intent_id: intentId, attempt_id: attemptId, user_op_hash: userOpHash}),
     cache: "no-store",
   });
-}
-
-async function chainNow(): Promise<number> {
-  const blk = (await rpc.request({method: "eth_getBlockByNumber", params: ["latest", false]})) as {timestamp: Hex};
-  return Number(BigInt(blk.timestamp));
-}
-
-async function gasPrice(): Promise<{maxFee: bigint; maxPrio: bigint}> {
-  try {
-    const gp = await bundler.request({method: "skandha_getGasPrice", params: []});
-    return {maxFee: BigInt(gp.maxFeePerGas), maxPrio: BigInt(gp.maxPriorityFeePerGas)};
-  } catch {
-    return {maxFee: 0xb165100c4n, maxPrio: 0xb165100c4n};
-  }
-}
-
-function dummyPaymasterData(sig: Hex): Hex {
-  const now = Math.floor(Date.now() / 1000);
-  const ts = encodeAbiParameters(parseAbiParameters("uint48, uint48"), [now + 300, now - 60]);
-  return concat([ts, sig]);
-}
-
-function unpackedForEstimate(o: {
-  sender: Address;
-  nonce: bigint;
-  callData: Hex;
-  maxFee: bigint;
-  maxPrio: bigint;
-  sig: Hex;
-  paymaster: Address;
-}): UnpackedUserOp {
-  return {
-    sender: o.sender,
-    nonce: toHex(o.nonce),
-    callData: o.callData,
-    callGasLimit: toHex(FLOOR_CGL),
-    verificationGasLimit: toHex(FLOOR_VGL),
-    preVerificationGas: toHex(FLOOR_PVG),
-    maxFeePerGas: toHex(o.maxFee),
-    maxPriorityFeePerGas: toHex(o.maxPrio),
-    paymaster: o.paymaster,
-    paymasterVerificationGasLimit: toHex(PM_VGL),
-    paymasterPostOpGasLimit: toHex(PM_PGL),
-    paymasterData: dummyPaymasterData(o.sig),
-    signature: o.sig,
-  };
-}
-
-async function estimateFloored(estOp: UnpackedUserOp): Promise<{cgl: bigint; vgl: bigint; pvg: bigint}> {
-  try {
-    const est = await bundler.request({method: "eth_estimateUserOperationGas", params: [estOp, EP]});
-    return {
-      cgl: bigMax(BigInt(est.callGasLimit), FLOOR_CGL),
-      vgl: bigMax(BigInt(est.verificationGasLimit), FLOOR_VGL),
-      pvg: bigMax(BigInt(est.preVerificationGas), FLOOR_PVG),
-    };
-  } catch {
-    return {cgl: FLOOR_CGL, vgl: FLOOR_VGL, pvg: FLOOR_PVG};
-  }
-}
-
-function classify(detail: string): {code: string; status: number} {
-  const d = detail.toLowerCase();
-  if (d.includes("aa31") || d.includes("deposit too low")) return {code: "sponsor_deposit_empty", status: 503};
-  if (/aa2[0-9]|aa3[0-9]|aa9[0-9]/.test(d)) return {code: "bundler_rejected", status: 502};
-  if (d.includes("rate")) return {code: "rate_limited", status: 429};
-  return {code: "submission_failed", status: 502};
 }
 
 // GET → config probe (no secrets leaked, just whether the run is available)
