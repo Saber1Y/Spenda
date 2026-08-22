@@ -7,15 +7,15 @@ export const CONTRACTS = {
   // call-site compatibility; there is no mock token on mainnet and nothing mints here.
   mockUSD: "0xaBabc7Ddc03e501d190C676BF3d92ef0e6e87a3C",
   vault: "0xf23147Df55089eA6bA87BF24bb4eEE6f7Cea182b",
-  factory: "0xe66dd4f6A29ab1843A39Df47f0D0f9e46F3B858f",
-  paymaster: "0xde609E52D9164C227D4F174D6260289bc3E62eC2",
-  verifyingSigner: "0xc06859dC7cf92360a79B7C6684fAD32cAE674f8B",
+  factory: "0x0b860c25Dc6b2Df451AA66cFCdc7D6c6D7802F66",
+  paymaster: "0xfB88d06289EaDD3aE23ef5C7bEF816baFfbf4000",
+  verifyingSigner: "0x98DD16d41a4Cd230f8286e593273f8D049193177",
 } as const satisfies Record<string, Address>;
 
 /** Deployed agent + its owner EOA + the allowlisted vendor. */
 export const DEMO = {
-  agent: "0x45EC5E9DcE259fdd11941482779BC52231955d60",
-  agentOwnerEOA: "0xC94943542Aceb1e1060Db4B3004d5Ae5f8261141",
+  agent: "0x13bb632f03083782D639d37bdaA35bbd930eF70E",
+  agentOwnerEOA: "0xd16fB5a0f2Ea765A6762E816d7b1C6d3750832F4",
   vendor: "0x3F5b96A494061F7338Da529e3047809Ac6a7FB84",
 } as const satisfies Record<string, Address>;
 

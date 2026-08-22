@@ -2,39 +2,43 @@
   "environment": "mainnet",
   "chainId": 677,
   "rpcUrl": "https://rpc.botchain.ai",
-  "bundlerUrl": "",
+  "bundlerUrl": "https://bundler.botchain.ai/rpc",
   "explorerUrl": "https://scan.botchain.ai",
   "entryPoint": "0x0000000071727De22E5E9d8BAf0edAc6f37da032",
   "supportedToken": "0xaBabc7Ddc03e501d190C676BF3d92ef0e6e87a3C",
   "supportedTokenSymbol": "USDT",
   "supportedTokenDecimals": 6,
   "vault": "0xf23147Df55089eA6bA87BF24bb4eEE6f7Cea182b",
-  "paymaster": "0xde609E52D9164C227D4F174D6260289bc3E62eC2",
-  "restrictedAccountFactory": "0xe66dd4f6A29ab1843A39Df47f0D0f9e46F3B858f",
+  "paymaster": "0xfB88d06289EaDD3aE23ef5C7bEF816baFfbf4000",
+  "restrictedAccountFactory": "0x0b860c25Dc6b2Df451AA66cFCdc7D6c6D7802F66",
   "owner": "0x3F5b96A494061F7338Da529e3047809Ac6a7FB84",
-  "verifyingSigner": "0xc06859dC7cf92360a79B7C6684fAD32cAE674f8B",
+  "verifyingSigner": "0x98DD16d41a4Cd230f8286e593273f8D049193177",
   "deploymentBlock": 20533755,
   "agents": [
     {
-      "account": "0x45EC5E9DcE259fdd11941482779BC52231955d60",
-      "owner": "0xC94943542Aceb1e1060Db4B3004d5Ae5f8261141",
+      "account": "0x13bb632f03083782D639d37bdaA35bbd930eF70E",
+      "owner": "0xd16fB5a0f2Ea765A6762E816d7b1C6d3750832F4",
       "vendor": "0x3F5b96A494061F7338Da529e3047809Ac6a7FB84",
-      "maxPerTxUsdt": 2,
-      "dailyCapUsdt": 4,
-      "expiry": 1789978388,
+      "maxPerTxUsdt": 0.5,
+      "dailyCapUsdt": 1,
+      "expiry": 1790014488,
       "active": true
     }
   ],
   "configTxBatch": {
-    "blockRange": [20536737, 20536749],
-    "totalPaidBot": 0.0162807,
-    "vaultUsdtFunded": 4.8,
+    "blockRange": [20584865, 20584874],
+    "totalPaidBot": 0.01523862,
+    "vaultUsdtFunded": 0,
     "paymasterDepositBot": 0.05
+  },
+  "rotationTxHashes": {
+    "paymaster": "0xf4d1f6160a636d973ca7b3ca0795f2c13cb9729cc4b16910fd6436a9bc1ab2e8",
+    "restrictedAccountFactory": "0x3fa73e5b2a3213561ad92f0c5e9879a5a4075037c83453892c3f208dfe251df5"
   },
   "deployTxHashes": {
     "vault": "0x75257b246cf1810963f4b7b2d7c1d6275ef439d2f555ed7f559f1a1fe5ed0629",
     "paymaster": "0xff4ee5861790383ae533cfc37d7dc63549308e056114911b0265f87b5ae69d95",
     "restrictedAccountFactory": "0x14ab455fd19b2eae6b5d686ee173f3a0e69ff333c1c24b6e0cb922c5052654e9"
   },
-  "notes": "Deployed via script/DeployMainnet.s.sol from forge broadcast at 20 gwei, total 0.0660 BOT. Owner, paymaster VAULT(), factory vault()/paymaster()/entryPoint() all read back on-chain and matched. Bundler URL still unconfirmed; MockUSD intentionally not deployed - official USDT is the only spend token."
+  "notes": "Original vault remains at the recorded address and holds the pilot USDT. Paymaster and factory were rotated on chain 677 at blocks 20584510-20584513, then a fresh agent was configured at blocks 20584865-20584874. Official USDT is the only spend token."
 }

@@ -130,7 +130,7 @@ const SPOTLIGHT_AGENTS = [
   {
     name: "Pilot procurement agent",
     address: "0x45EC5E9DcE259fdd11941482779BC52231955d60",
-    policy: "Max 2 USDT per tx · 4 per day · expires Sep 21, 2026",
+    policy: "Max 0.50 USDT per tx · 1 per day · active on mainnet",
   },
 ];
 
