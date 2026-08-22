@@ -11,10 +11,10 @@ Do not broadcast a mainnet deployment until every required value is verified.
 - [x] Official mainnet EntryPoint address confirmed: `0x0000000071727De22E5E9d8BAf0edAc6f37da032`, code live on chain 677.
 - [x] Official supported stablecoin confirmed: USDT at `0xaBabc7Ddc03e501d190C676BF3d92ef0e6e87a3C`, 6 decimals.
 - [ ] Contract source verified on the mainnet explorer.
-- [ ] `BOTSpendVault` owner constructor address verified.
-- [ ] `BOTSpendPaymaster.VAULT()` matches the deployed vault.
-- [ ] `RestrictedAgentAccountFactory.vault()` matches the deployed vault.
-- [ ] `RestrictedAgentAccountFactory.paymaster()` matches the deployed paymaster.
+- [x] `BOTSpendVault` owner constructor address verified: reads back as the deployer owner wallet.
+- [x] `BOTSpendPaymaster.VAULT()` matches the deployed vault.
+- [x] `RestrictedAgentAccountFactory.vault()` matches the deployed vault.
+- [x] `RestrictedAgentAccountFactory.paymaster()` matches the deployed paymaster.
 
 ## Key Separation
 
