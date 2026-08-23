@@ -7,6 +7,7 @@ import {getActiveContracts, MUSD_DECIMALS, vaultAbi} from "@/lib/contracts";
 import {revokeRestrictedAgent, updateAgentBudget} from "@/lib/createAgent";
 import {runUserSpend, describeSpendError, type UserSpendOutcome} from "@/lib/userSpend";
 import {rememberMyAgent, loadMyAgents} from "@/lib/intentStore";
+import {friendlyErrorFrom} from "@/lib/errorMessages";
 import {formatMusd, truncateAddress} from "@/lib/format";
 import {explorerAddress} from "@/lib/chain";
 import {Chip, CopyChip, TxChip} from "@/components/ui/Chip";
@@ -145,7 +146,7 @@ export default function AgentsPage() {
       setShowCreate(false);
       refreshPolicies();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : String(error));
+      setMessage(friendlyErrorFrom(error));
     } finally {
       setBusy(false);
     }
@@ -169,7 +170,7 @@ export default function AgentsPage() {
       setEditing(null);
       refreshPolicies();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : String(error));
+      setMessage(friendlyErrorFrom(error));
     } finally {
       setBusy(false);
     }
@@ -203,7 +204,7 @@ function SpendBox({agentAddress, wallet}: {agentAddress: string; wallet: {signMe
       const result = await runUserSpend(wallet.signMessage.bind(wallet), agentAddress, baseUnits.toString());
       setOutcome(result);
     } catch (error) {
-      setOutcome({ok: false, error: "wallet_error", message: error instanceof Error ? error.message : String(error)});
+      setOutcome({ok: false, error: "wallet_error", message: friendlyErrorFrom(error)});
     } finally {
       setBusySpend(false);
     }

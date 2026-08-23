@@ -1,4 +1,5 @@
 import type {Hex} from "viem";
+import {friendlyError} from "@/lib/errorMessages";
 
 export interface UserSpendOutcome {
   ok?: boolean;
@@ -43,19 +44,5 @@ export async function runUserSpend(
 }
 
 export function describeSpendError(outcome: UserSpendOutcome): string {
-  const messages: Record<string, string> = {
-    rate_limited: "Too many runs - slow down and retry.",
-    exceeds_max_per_tx: "Blocked on-chain policy check: exceeds this agent's max per transaction.",
-    exceeds_daily_cap: "Blocked on-chain policy check: daily cap would be exceeded.",
-    agent_not_active: "This agent's policy is inactive or expired.",
-    account_not_deployed: "Account not deployed yet - retry in a moment.",
-    not_allowed: "Vendor or token is not allowlisted for this agent.",
-    not_sponsorable: "The gas sponsor rejected this operation.",
-    bad_signature: "Wallet signature rejected - it must come from the agent owner.",
-    unknown_or_expired_op: "Prepared request expired - start again.",
-    bundler_rejected: "Bundler rejected the operation.",
-    submission_failed: "Submission failed - try again.",
-  };
-  if (outcome.error && messages[outcome.error]) return messages[outcome.error];
-  return outcome.message ?? outcome.error ?? "Something went wrong.";
+  return friendlyError(outcome.error, outcome.message);
 }

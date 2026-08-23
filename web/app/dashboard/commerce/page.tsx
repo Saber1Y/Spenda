@@ -4,7 +4,9 @@ import {useEffect, useState} from "react";
 import {useAccount, useWalletClient} from "wagmi";
 import {getActiveContracts} from "@/lib/contracts";
 import {MERCHANTS} from "@/lib/merchants";
+import {parseSpendCommand} from "@/lib/nlParse";
 import {runUserSpend, describeSpendError, type UserSpendOutcome} from "@/lib/userSpend";
+import {friendlyErrorFrom} from "@/lib/errorMessages";
 import {savePendingApproval, rememberIntentMeta, loadMyAgents, type MyAgent} from "@/lib/intentStore";
 import type {Intent, PolicySnapshot} from "@/lib/intentTypes";
 import {Button} from "@/components/ui/Button";
@@ -20,6 +22,8 @@ export default function CommercePage() {
   const [agentId, setAgentId] = useState("");
   const [phase, setPhase] = useState<Phase>({kind: "idle"});
   const [agents, setAgents] = useState<MyAgent[]>([]);
+  const [command, setCommand] = useState("");
+  const [commandError, setCommandError] = useState("");
 
   useEffect(() => {
     if (!address || !wallet) return;
@@ -33,27 +37,37 @@ export default function CommercePage() {
     setAgentId((current) => current || candidates[0]?.address || "");
   }, [address, wallet, active.agent]);
 
-  const requestPurchase = async (merchantId: string) => {
+  const createIntent = async (body: Record<string, unknown>) => {
     if (!agentId) return;
     setPhase({kind: "deciding"});
+    setCommandError("");
     try {
       const res = await fetch("/api/intent", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({agent: agentId, merchantId}),
+        body: JSON.stringify({agent: agentId, ...body}),
       });
       const payload = await res.json();
-      if (!res.ok) throw new Error(payload?.error ?? "Intent failed");
+      if (!res.ok) throw new Error(payload?.error ?? payload?.message ?? "intent_failed");
       const {intent, policySnapshot} = payload as {intent: Intent; policySnapshot: PolicySnapshot};
-      if (intent.decision === "human_approval") {
-        savePendingApproval(intent);
-        setPhase({kind: "intent", intent, policy: policySnapshot});
-        return;
-      }
+      if (intent.decision === "human_approval") savePendingApproval(intent);
       setPhase({kind: "intent", intent, policy: policySnapshot});
     } catch (error) {
-      setPhase({kind: "done", outcome: {ok: false, error: "intent_failed", message: error instanceof Error ? error.message : String(error)}, intent: {label: "Intent"} as Intent});
+      setCommandError(friendlyErrorFrom(error));
+      setPhase({kind: "idle"});
     }
+  };
+
+  const requestPurchase = (merchantId: string) => void createIntent({merchantId});
+
+  const submitCommand = () => {
+    const parsed = parseSpendCommand(command);
+    if (!parsed) {
+      setCommandError("Could not read that. Name a purchase - try \"renew spotify\", \"buy gpu compute for $3\" or \"pay the market data agent\".");
+      return;
+    }
+    if (parsed.merchantId) void createIntent({merchantId: parsed.merchantId});
+    else void createIntent({amountBaseUnits: parsed.amountBaseUnits, category: parsed.category, label: parsed.label, vendor: active.vendor});
   };
 
   const executeApproved = async (intent: Intent) => {
@@ -64,9 +78,11 @@ export default function CommercePage() {
       rememberIntentMeta(intent);
       setPhase((p) => ({...(p as Extract<Phase, {kind: "executing"}>), kind: "done", outcome}));
     } catch (error) {
-      setPhase({kind: "done", outcome: {ok: false, error: "wallet_error", message: error instanceof Error ? error.message : String(error)}, intent});
+      setPhase({kind: "done", outcome: {ok: false, error: "wallet_error", message: friendlyErrorFrom(error)}, intent});
     }
   };
+
+  const busy = phase.kind === "deciding" || phase.kind === "executing";
 
   return <div className="max-w-[1100px] px-8 py-8">
     <div><h1 className="font-heading text-heading text-aubergine" style={{fontWeight: 350}}>Spenda Commerce</h1>
@@ -82,6 +98,29 @@ export default function CommercePage() {
     </div>
     {!address && <p className="mt-4 rounded-[12px] border border-ash bg-bone px-4 py-3 text-body-sm text-fog">Connect a wallet to create intents. The paying agent must be one you own (or the demo pilot).</p>}
 
+    <div className="mt-6">
+      <Panel title="What should the agent buy?" subtitle="plain English - parsed on your device, decided by your on-chain policy">
+        <div className="flex gap-2">
+          <input
+            className="w-full rounded-[10px] border border-ash bg-bone px-4 py-2.5 text-body-sm text-obsidian"
+            placeholder='Try: "renew my domain" - "buy ai credits for $4" - "pay the market data agent"'
+            value={command}
+            onChange={(event) => {
+              setCommand(event.target.value);
+              setCommandError("");
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && command.trim() && !busy) submitCommand();
+            }}
+          />
+          <Button variant="primary" size="sm" onClick={submitCommand} disabled={!command.trim() || !agentId || busy}>
+            {busy ? "Checking..." : "Get approval"}
+          </Button>
+        </div>
+        {commandError && <p className="mt-2 text-caption text-blush-signal">{commandError}</p>}
+      </Panel>
+    </div>
+
     {phase.kind === "intent" && <DecisionCard phase={phase} onExecute={() => executeApproved(phase.intent)} busy={false} />}
     {phase.kind === "executing" && <p className="mt-6 rounded-[12px] border border-ash bg-bone px-4 py-3 text-body-sm text-fog">Signing and submitting the sponsored payment...</p>}
     {phase.kind === "done" && <DoneCard phase={phase} onReset={() => setPhase({kind: "idle"})} />}
@@ -92,8 +131,8 @@ export default function CommercePage() {
           <p className="text-body-sm text-fog">{merchant.description}</p>
           <div className="mt-4 flex items-center justify-between">
             <span className="text-[15px] tabular-nums text-aubergine">{(Number(merchant.priceBaseUnits) / 1_000_000).toFixed(2)} USDT</span>
-            <Button variant="primary" size="sm" onClick={() => requestPurchase(merchant.merchantId)} disabled={!agentId || !address || phase.kind === "deciding" || phase.kind === "executing"}>
-              {phase.kind === "deciding" ? "Checking policy..." : "Create intent"}
+            <Button variant="primary" size="sm" onClick={() => requestPurchase(merchant.merchantId)} disabled={!agentId || !address || busy}>
+              {busy ? "Checking policy..." : "Create intent"}
             </Button>
           </div>
         </Panel>
@@ -111,7 +150,7 @@ function DecisionCard({phase, onExecute, busy}: {phase: Extract<Phase, {kind: "i
       <Chip tone={tone}>{intent.decision.replace("_", " ")}</Chip>
       {intent.riskScore !== null && <Chip tone={intent.riskLevel === "LOW" ? "mint" : intent.riskLevel === "HIGH" ? "blush" : "lavender"}>risk {intent.riskScore}/100</Chip>}
     </div>
-    <p className="mt-3 text-body-sm text-fog">{intent.decisionReason}. No funds moved yet.</p>
+    <p className="mt-3 text-body-sm text-fog">{friendlyDecisionReason(intent.decisionReason)}. No funds moved yet.</p>
     <div className="mt-4 grid gap-3 sm:grid-cols-2">
       <div><span className="text-caption text-fog">Amount</span><p className="text-body-sm tabular-nums text-obsidian">{(Number(intent.amount) / 1e6).toFixed(2)} USDT</p></div>
       <div><span className="text-caption text-fog">Recipient</span><p className="text-body-sm text-obsidian">{truncate(intent.recipient)}</p></div>
@@ -135,3 +174,17 @@ function DoneCard({phase, onReset}: {phase: Extract<Phase, {kind: "done"}>; onRe
 }
 
 const truncate = (value: string) => value.length > 14 ? `${value.slice(0, 8)}...${value.slice(-4)}` : value;
+
+/** Expand terse contract fence strings into sentences. */
+function friendlyDecisionReason(reason: string): string {
+  const map: Record<string, string> = {
+    "Agent policy is inactive": "This agent's policy is inactive",
+    "Agent policy has expired": "This agent's policy has expired - create a new agent or extend it on the Agents page",
+    "Exceeds daily cap": "The purchase would push this agent past its daily cap",
+  };
+  const exact = map[reason];
+  if (exact) return exact;
+  if (/^Exceeds maxPerTx/.test(reason)) return `The amount is above this agent's per-transaction limit (${reason.replace(/^Exceeds maxPerTx \(/, "").replace(/\)$/, "")})`;
+  if (/not allowlisted/i.test(reason)) return reason.replace("token not allowlisted", "that token is not allowlisted for this agent").replace("target not allowlisted", "that vendor is not allowlisted for this agent");
+  return reason;
+}

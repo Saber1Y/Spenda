@@ -4,6 +4,7 @@ import {useEffect, useState} from "react";
 import {useAccount, useSignTypedData, useWalletClient} from "wagmi";
 import {getActiveContracts} from "@/lib/contracts";
 import {runUserSpend, describeSpendError, type UserSpendOutcome} from "@/lib/userSpend";
+import {friendlyErrorFrom} from "@/lib/errorMessages";
 import {loadPendingApprovals, removePendingApproval, rememberIntentMeta} from "@/lib/intentStore";
 import type {Intent} from "@/lib/intentTypes";
 import {truncateAddress} from "@/lib/format";
@@ -55,7 +56,7 @@ export default function ApprovalsPage() {
       }
       setPending(removePendingApproval(intent.intentId));
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : String(error));
+      setStatus(friendlyErrorFrom(error));
     } finally {
       setBusy(null);
     }
