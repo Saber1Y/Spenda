@@ -95,13 +95,29 @@ Each account is bound to one vault and one paymaster at creation and permits onl
 | Route | Purpose |
 |---|---|
 | `/dashboard/overview` | KPIs, live agent status, Run-the-agent panel, analytics, recent activity |
-| `/dashboard/approvals` | Approved/blocked decision history from on-chain events |
+| `/dashboard/commerce` | Merchant sandbox: create intents, see policy decisions, execute approved spends |
+| `/dashboard/approvals` | High-risk intents awaiting exact, wallet-signed human consent |
 | `/dashboard/policies` | Policy status, edit form, daily cap meter, emergency revoke |
-| `/dashboard/agents` | Agent list, creation via factory, budgets |
+| `/dashboard/agents` | Agent list (on-chain policy filter), self-serve creation, budgets from chain |
+| `/dashboard/receipts` | Every approved/blocked decision read directly from vault events |
+| `/dashboard/risk` | Deterministic intent-scoring policy (open and reproducible) |
 | `/dashboard/allowlist` | Approved targets and tokens, add/remove controls |
 | `/dashboard/gas` | Paymaster deposit, security invariants, fund paymaster |
 
-Additional routes (`spending`, `receipts`, `commerce`, `risk`, `monitoring`, `audit`) exist but are intentionally hidden from the sidebar during the pilot.
+Legacy routes (`spending`, `monitoring`, `audit`, `deploy`) remain but are hidden
+from the sidebar during the pilot.
+
+### Commerce Sandbox Flow
+
+1. Connect your wallet on **Agents** and create an agent - your wallet signs one
+   message; the treasury provisions the account, policy, and allowlists on-chain.
+2. Open **Commerce**, pick your paying agent, and select a merchant.
+3. The intent engine reads the live policy and returns a decision:
+   - LOW risk (e.g. Domain renewal) - approve and pay in one signature.
+   - Elevated risk (e.g. AI API credits, GPU compute, agent-to-agent data) -
+     queued on **Approvals** for an exact EIP-712 consent before execution.
+   - Over cap or unknown vendor - blocked with zero funds moved.
+4. Every decision and payment appears under **Receipts** with a BOTScan link.
 
 ### Key Components and Libraries
 
