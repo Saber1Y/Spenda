@@ -113,10 +113,13 @@ from the sidebar during the pilot.
    message; the treasury provisions the account, policy, and allowlists on-chain.
 2. Open **Commerce**, pick your paying agent, and select a merchant.
 3. The intent engine reads the live policy and returns a decision:
-   - LOW risk (e.g. Domain renewal) - approve and pay in one signature.
-   - Elevated risk (e.g. AI API credits, GPU compute, agent-to-agent data) -
-     queued on **Approvals** for an exact EIP-712 consent before execution.
-   - Over cap or unknown vendor - blocked with zero funds moved.
+   - Routine purchases (domain renewal, subscriptions, small AI/compute
+     top-ups) - auto-approved, pay with one signature.
+   - Elevated risk - the RWA invoice always escalates; agent-to-agent data
+     escalates once you have spent today - queued on **Approvals** for an exact
+     EIP-712 consent before execution.
+   - Over cap (the Enterprise RWA bundle) or unknown vendor - blocked by the
+     on-chain fence with zero funds moved.
 4. Every decision and payment appears under **Receipts** with a BOTScan link.
 
 ### Key Components and Libraries
