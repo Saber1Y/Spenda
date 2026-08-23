@@ -21,11 +21,12 @@ export async function runUserSpend(
   sender: string,
   amountBaseUnits: string,
   vendor?: string,
+  actionId?: string,
 ): Promise<UserSpendOutcome> {
   const prepRes = await fetch("/api/spend/prepare", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({sender, amountBaseUnits, vendor}),
+    body: JSON.stringify({sender, amountBaseUnits, vendor, actionId}),
   });
   const prep = await prepRes.json();
   if (!prepRes.ok) {

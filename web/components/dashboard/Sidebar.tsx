@@ -12,9 +12,12 @@ import {Logo} from "@/components/ui/Logo";
 
 const NAV_ITEMS = [
   { href: "/dashboard/overview", label: "Overview", icon: "grid" },
+  { href: "/dashboard/commerce", label: "Commerce", icon: "shop" },
   { href: "/dashboard/approvals", label: "Approvals", icon: "hand" },
   { href: "/dashboard/policies", label: "Policies", icon: "shield" },
   { href: "/dashboard/agents", label: "Agents", icon: "bot" },
+  { href: "/dashboard/receipts", label: "Receipts", icon: "receipt" },
+  { href: "/dashboard/risk", label: "Risk Policy", icon: "pulse" },
   { href: "/dashboard/allowlist", label: "Allowlist", icon: "list" },
   { href: "/dashboard/gas", label: "Gas Sponsorship", icon: "zap" },
 ] as const;

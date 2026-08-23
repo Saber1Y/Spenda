@@ -1,81 +1,137 @@
 "use client";
 
 import {useEffect, useState} from "react";
+import {useAccount, useWalletClient} from "wagmi";
 import {getActiveContracts} from "@/lib/contracts";
-import {useActiveVaultEntity} from "@/lib/base44-hooks";
-import {getBase44Client} from "@/lib/base44";
+import {MERCHANTS} from "@/lib/merchants";
+import {runUserSpend, describeSpendError, type UserSpendOutcome} from "@/lib/userSpend";
+import {savePendingApproval, rememberIntentMeta, loadMyAgents, type MyAgent} from "@/lib/intentStore";
+import type {Intent, PolicySnapshot} from "@/lib/intentTypes";
 import {Button} from "@/components/ui/Button";
 import {Chip} from "@/components/ui/Chip";
 import {Panel} from "@/components/dashboard/Panel";
-import {executeIntent} from "@/lib/intent-execution";
 
-const DEMO_MERCHANTS = [
-  {merchant_id: "spotify-premium", display_name: "Spotify Premium renewal", category: "saas", description: "Renew a subscription under the agent's budget", price: "11990000"},
-  {merchant_id: "ai-api-credits", display_name: "AI API credits", category: "ai", description: "Top up API credits before service interruption", price: "20000000"},
-  {merchant_id: "gpu-compute", display_name: "GPU compute", category: "compute", description: "Purchase a short compute reservation", price: "12000000"},
-  {merchant_id: "market-data-agent", display_name: "Market data agent", category: "agent", description: "Pay a registered agent for research data", price: "5000000"},
-  {merchant_id: "tokenized-invoice", display_name: "Tokenized invoice", category: "rwa", description: "Purchase an RWA-category sandbox asset", price: "100000000"},
-];
+type Phase = {kind: "idle"} | {kind: "deciding"} | {kind: "intent"; intent: Intent; policy: PolicySnapshot} | {kind: "executing"; intent: Intent; policy: PolicySnapshot} | {kind: "done"; outcome: UserSpendOutcome; intent: Intent};
 
 export default function CommercePage() {
   const active = getActiveContracts();
-  const vault = useActiveVaultEntity();
-  const [merchants, setMerchants] = useState<Record<string, any>[]>(DEMO_MERCHANTS);
-  const [agents, setAgents] = useState<Record<string, any>[]>([]);
+  const {address} = useAccount();
+  const {data: wallet} = useWalletClient();
   const [agentId, setAgentId] = useState("");
-  const [status, setStatus] = useState<string>("");
+  const [phase, setPhase] = useState<Phase>({kind: "idle"});
+  const [agents, setAgents] = useState<MyAgent[]>([]);
 
   useEffect(() => {
-    if (!vault?.id) return;
-    const load = async () => {
-      const client = getBase44Client();
-      const [merchantResult, agentResult] = await Promise.all([
-        client.functions.invoke("listMerchants", {vault_id: vault.id}),
-        client.functions.invoke("listAgents", {vault_id: vault.id}),
-      ]);
-      const merchantData = merchantResult?.data ?? merchantResult;
-      const agentData = agentResult?.data ?? agentResult;
-      if (merchantData?.ok && merchantData.data.length > 0) setMerchants(merchantData.data);
-      if (agentData?.ok && agentData.data.length > 0) {
-        const activeAgents = agentData.data.filter((agent: Record<string, any>) => agent.status === "active");
-        setAgents(activeAgents);
-        setAgentId((current) => current || activeAgents[0]?.id || "");
-      }
-    };
-    void load();
-  }, [vault?.id]);
+    if (!address || !wallet) return;
+    // Candidate paying agents: the user's own created agents (localStorage
+    // registry written at creation time) plus the demo pilot agent.
+    const candidates = [...loadMyAgents()];
+    if (!candidates.some((c) => c.address === active.agent)) {
+      candidates.unshift({address: active.agent, name: "Demo pilot agent"});
+    }
+    setAgents(candidates);
+    setAgentId((current) => current || candidates[0]?.address || "");
+  }, [address, wallet, active.agent]);
 
-  const requestPurchase = async (merchant: Record<string, any>) => {
-    if (!vault?.id) return setStatus("Sync the active vault before creating an intent.");
-    setStatus(`Creating ${merchant.display_name} intent...`);
+  const requestPurchase = async (merchantId: string) => {
+    if (!agentId) return;
+    setPhase({kind: "deciding"});
     try {
-      const client = getBase44Client();
-      const result = await client.functions.invoke("createSpendIntent", {
-        vault_id: vault.id,
-        agent_id: agentId,
-        intent_type: merchant.category === "agent" ? "agent_payment" : merchant.category === "rwa" ? "rwa_purchase" : "purchase",
-        description: merchant.description,
-        token: active.mockUSD,
-        amount: merchant.price,
-        recipient: merchant.payment_address ?? active.vendor,
-        category: merchant.category,
-        ...(merchant.payment_address ? {merchant_id: merchant.merchant_id} : {}),
-        metadata: {sandbox: true, fulfillment: "simulated"},
-        expires_at: Math.floor(Date.now() / 1000) + 2 * 60 * 60,
+      const res = await fetch("/api/intent", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({agent: agentId, merchantId}),
       });
-      const response = result?.data ?? result;
-      if (!response?.ok) throw new Error(response?.error ?? "Intent failed");
-      if (response.decision === "approved") {
-        setStatus(`Approved: ${response.decision_reason}. Submitting restricted UserOperation...`);
-        const execution = await executeIntent(response.intent.id);
-        setStatus(`${execution.outcome.kind}: ${execution.outcome.reason ?? "vault executed the payment"}`);
-      } else {
-        setStatus(`${response.decision}: ${response.decision_reason}. No funds moved.`);
+      const payload = await res.json();
+      if (!res.ok) throw new Error(payload?.error ?? "Intent failed");
+      const {intent, policySnapshot} = payload as {intent: Intent; policySnapshot: PolicySnapshot};
+      if (intent.decision === "human_approval") {
+        savePendingApproval(intent);
+        setPhase({kind: "intent", intent, policy: policySnapshot});
+        return;
       }
+      setPhase({kind: "intent", intent, policy: policySnapshot});
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : String(error));
+      setPhase({kind: "done", outcome: {ok: false, error: "intent_failed", message: error instanceof Error ? error.message : String(error)}, intent: {label: "Intent"} as Intent});
     }
   };
 
-  return <div className="max-w-[1100px] px-8 py-8"><div><h1 className="font-heading text-heading text-aubergine" style={{fontWeight: 350}}>Spenda Commerce</h1><p className="mt-1 text-[15px] text-fog">Real BOT Chain payment authorization with simulated merchant fulfillment.</p></div><div className="mt-5 flex flex-wrap items-center gap-3"><Chip tone="outline">Merchant Sandbox</Chip><label className="flex items-center gap-2 text-body-sm text-fog">Paying agent<select className="rounded-[10px] border border-ash bg-bone px-3 py-2 text-obsidian" value={agentId} onChange={(event) => setAgentId(event.target.value)}>{agents.map((agent) => <option key={agent.id} value={agent.id}>{agent.display_name ?? agent.address}</option>)}</select></label></div>{status && <p className="mt-4 rounded-[12px] border border-ash bg-bone px-4 py-3 text-body-sm text-fog">{status}</p>}{agents.length === 0 && <p className="mt-4 rounded-[12px] border border-blush-mist bg-blush-mist/20 px-4 py-3 text-body-sm text-aubergine">Register an active restricted agent before creating a commerce intent.</p>}<div className="mt-8 grid gap-4 md:grid-cols-2">{merchants.map((merchant) => <Panel key={merchant.merchant_id} title={merchant.display_name} subtitle={merchant.category}><p className="text-body-sm text-fog">{merchant.description}</p><div className="mt-4 flex items-center justify-between"><span className="text-[15px] tabular-nums text-aubergine">{(Number(merchant.price ?? "0") / 1_000_000).toFixed(2)} USDT</span><Button variant="primary" size="sm" onClick={() => requestPurchase(merchant)} disabled={!agentId}>Create intent</Button></div></Panel>)}</div></div>;
+  const executeApproved = async (intent: Intent) => {
+    if (!wallet) return;
+    setPhase((p) => ({...(p as Extract<Phase, {kind: "intent"}>), kind: "executing"}));
+    try {
+      const outcome = await runUserSpend(wallet.signMessage.bind(wallet), intent.agent, intent.amount, intent.recipient, intent.actionId);
+      rememberIntentMeta(intent);
+      setPhase((p) => ({...(p as Extract<Phase, {kind: "executing"}>), kind: "done", outcome}));
+    } catch (error) {
+      setPhase({kind: "done", outcome: {ok: false, error: "wallet_error", message: error instanceof Error ? error.message : String(error)}, intent});
+    }
+  };
+
+  return <div className="max-w-[1100px] px-8 py-8">
+    <div><h1 className="font-heading text-heading text-aubergine" style={{fontWeight: 350}}>Spenda Commerce</h1>
+      <p className="mt-1 text-[15px] text-fog">Real BOT Chain payment authorization with simulated merchant fulfillment.</p></div>
+
+    <div className="mt-5 flex flex-wrap items-center gap-3">
+      <Chip tone="outline">Merchant Sandbox</Chip>
+      <label className="flex items-center gap-2 text-body-sm text-fog">Paying agent
+        <select className="rounded-[10px] border border-ash bg-bone px-3 py-2 text-obsidian" value={agentId} onChange={(event) => setAgentId(event.target.value)}>
+          {agents.map((agent) => <option key={agent.address} value={agent.address}>{agent.name}</option>)}
+        </select>
+      </label>
+    </div>
+    {!address && <p className="mt-4 rounded-[12px] border border-ash bg-bone px-4 py-3 text-body-sm text-fog">Connect a wallet to create intents. The paying agent must be one you own (or the demo pilot).</p>}
+
+    {phase.kind === "intent" && <DecisionCard phase={phase} onExecute={() => executeApproved(phase.intent)} busy={false} />}
+    {phase.kind === "executing" && <p className="mt-6 rounded-[12px] border border-ash bg-bone px-4 py-3 text-body-sm text-fog">Signing and submitting the sponsored payment...</p>}
+    {phase.kind === "done" && <DoneCard phase={phase} onReset={() => setPhase({kind: "idle"})} />}
+
+    <div className="mt-8 grid gap-4 md:grid-cols-2">
+      {MERCHANTS.map((merchant) => (
+        <Panel key={merchant.merchantId} title={merchant.name} subtitle={merchant.category}>
+          <p className="text-body-sm text-fog">{merchant.description}</p>
+          <div className="mt-4 flex items-center justify-between">
+            <span className="text-[15px] tabular-nums text-aubergine">{(Number(merchant.priceBaseUnits) / 1_000_000).toFixed(2)} USDT</span>
+            <Button variant="primary" size="sm" onClick={() => requestPurchase(merchant.merchantId)} disabled={!agentId || !address || phase.kind === "deciding" || phase.kind === "executing"}>
+              {phase.kind === "deciding" ? "Checking policy..." : "Create intent"}
+            </Button>
+          </div>
+        </Panel>
+      ))}
+    </div>
+  </div>;
 }
+
+function DecisionCard({phase, onExecute, busy}: {phase: Extract<Phase, {kind: "intent"}>; onExecute: () => void; busy: boolean}) {
+  const {intent, policy} = phase;
+  const tone = intent.decision === "approved" ? "mint" : intent.decision === "blocked" ? "blush" : "lavender";
+  const usedPct = Math.min(100, Math.round((policy.spentTodayUsdt / Math.max(policy.dailyCapUsdt, 0.01)) * 100));
+  return <Panel title="Policy decision" subtitle={intent.label}>
+    <div className="flex flex-wrap items-center gap-2">
+      <Chip tone={tone}>{intent.decision.replace("_", " ")}</Chip>
+      {intent.riskScore !== null && <Chip tone={intent.riskLevel === "LOW" ? "mint" : intent.riskLevel === "HIGH" ? "blush" : "lavender"}>risk {intent.riskScore}/100</Chip>}
+    </div>
+    <p className="mt-3 text-body-sm text-fog">{intent.decisionReason}. No funds moved yet.</p>
+    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+      <div><span className="text-caption text-fog">Amount</span><p className="text-body-sm tabular-nums text-obsidian">{(Number(intent.amount) / 1e6).toFixed(2)} USDT</p></div>
+      <div><span className="text-caption text-fog">Recipient</span><p className="text-body-sm text-obsidian">{truncate(intent.recipient)}</p></div>
+      <div><span className="text-caption text-fog">Daily budget used</span><p className="text-body-sm tabular-nums text-obsidian">{policy.spentTodayUsdt.toFixed(2)} / {policy.dailyCapUsdt.toFixed(2)} USDT ({usedPct}%)</p></div>
+      <div><span className="text-caption text-fog">Max per transaction</span><p className="text-body-sm tabular-nums text-obsidian">{policy.maxPerTxUsdt.toFixed(2)} USDT</p></div>
+    </div>
+    {intent.decision === "approved" && <Button className="mt-5" variant="primary" size="sm" onClick={onExecute} disabled={busy}>Sign &amp; pay now</Button>}
+    {intent.decision === "human_approval" && <p className="mt-5 text-body-sm text-aubergine">Queued for human approval - find it on the Approvals page.</p>}
+  </Panel>;
+}
+
+function DoneCard({phase, onReset}: {phase: Extract<Phase, {kind: "done"}>; onReset: () => void}) {
+  const {outcome} = phase;
+  return <Panel title="Execution result" subtitle={outcome.status === "included" && outcome.success ? "payment settled" : undefined}>
+    {outcome.status === "included" && outcome.success && <p className="text-body-sm text-mint-signal">Payment executed. Receipt emitted on-chain.{outcome.txHash ? ` tx ${outcome.txHash.slice(0, 14)}...` : ""}</p>}
+    {outcome.status === "included" && !outcome.success && <p className="text-body-sm text-obsidian">Blocked by the on-chain fence{outcome.reason ? `: ${outcome.reason}` : "."}</p>}
+    {outcome.ok === false && <p className="text-body-sm text-obsidian">{describeSpendError(outcome)}</p>}
+    {outcome.status === "timeout" && <p className="text-body-sm text-fog">Submitted but not yet included - check BOTScan shortly.</p>}
+    <Button className="mt-4" variant="secondary" size="sm" onClick={onReset}>New purchase</Button>
+  </Panel>;
+}
+
+const truncate = (value: string) => value.length > 14 ? `${value.slice(0, 8)}...${value.slice(-4)}` : value;

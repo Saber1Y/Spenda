@@ -137,8 +137,11 @@ export async function POST(req: NextRequest) {
 
     const nonce = (await rpc.readContract({address: EP, abi: getNonceAbi, functionName: "getNonce", args: [sender, 0n]})) as bigint;
 
-    // Fresh actionId so a CAP rejection is never masked by dedup replay.
-    const actionId = `0x${randomBytes(32).toString("hex")}` as Hex;
+    // A pre-authorized intent supplies its actionId so the executed op is the
+    // exact one that was decided; direct spends get a fresh random id so a CAP
+    // rejection is never masked by dedup replay.
+    const providedActionId = typeof body.actionId === "string" && /^0x[0-9a-fA-F]{64}$/.test(body.actionId) ? body.actionId : undefined;
+    const actionId = (providedActionId ?? `0x${randomBytes(32).toString("hex")}`) as Hex;
     const inner = encodeFunctionData({abi: executeSpendAbi, functionName: "executeSpend", args: [token, vendor, amount, "0x", actionId]});
     const callData = encodeFunctionData({abi: executeAbi, functionName: "execute", args: [vaultAddr, 0n, inner]});
 
