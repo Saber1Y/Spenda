@@ -43,8 +43,23 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({error: "invalid_request", message: "userOpHash and signature are required."}, {status: 400});
   }
 
+  // Try the in-memory registry first (works when prepare and send hit the same
+  // Vercel instance).  Fall back to the client-supplied op bundle so the flow
+  // works across serverless instances.
   const pendingEntry = takePending(userOpHash);
-  if (!pendingEntry) {
+  let unpacked = pendingEntry?.unpacked as Record<string, string> | undefined;
+  let amount = pendingEntry?.amount;
+  let vendor = pendingEntry?.vendor;
+  let actionId = pendingEntry?.actionId;
+
+  if (!unpacked && body.op && typeof body.op === "object") {
+    unpacked = body.op as Record<string, string>;
+    amount = body.amount ? BigInt(body.amount as string) : undefined;
+    vendor = body.vendor as `0x${string}` | undefined;
+    actionId = body.actionId as `0x${string}` | undefined;
+  }
+
+  if (!unpacked || !unpacked.sender) {
     return NextResponse.json(
       {error: "unknown_or_expired_op", message: "Prepare the spend again - prepared ops expire after 15 minutes."},
       {status: 404},
@@ -54,7 +69,7 @@ export async function POST(req: NextRequest) {
   try {
     // Signature must recover to the restricted account's owner.
     const owner = await rpc.readContract({
-      address: pendingEntry.unpacked.sender as `0x${string}`,
+      address: unpacked.sender as `0x${string}`,
       abi: accountAbi,
       functionName: "owner",
     });
@@ -67,8 +82,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({error: "bad_signature", message: "Signature does not match the agent owner."}, {status: 401});
     }
 
-    const unpacked = {...pendingEntry.unpacked, signature: signature as Hex};
-    await bundler.request({method: "eth_sendUserOperation", params: [unpacked, "0x0000000071727De22E5E9d8BAf0edAc6f37da032"]});
+    const submitted = {...unpacked, signature: signature as Hex};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await bundler.request({method: "eth_sendUserOperation", params: [submitted as any, "0x0000000071727De22E5E9d8BAf0edAc6f37da032"]});
 
     for (let i = 0; i < 20; i++) {
       await new Promise((r) => setTimeout(r, 3000));
@@ -81,8 +97,8 @@ export async function POST(req: NextRequest) {
           reason: r.reason ?? null,
           txHash: r.receipt?.transactionHash ?? null,
           actualGasCostWei: r.actualGasCost ?? null,
-          amountBaseUnits: pendingEntry.amount.toString(),
-          vendor: pendingEntry.vendor,
+          amountBaseUnits: amount?.toString() ?? null,
+          vendor: vendor ?? null,
         });
       }
     }

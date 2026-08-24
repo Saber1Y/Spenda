@@ -14,9 +14,12 @@ export interface UserSpendOutcome {
 
 /**
  * Client half of the user-signed sponsored spend:
- * 1. /api/spend/prepare builds everything server-side and returns the userOpHash.
+ * 1. /api/spend/prepare builds everything server-side and returns the userOpHash + op bundle.
  * 2. The connected wallet (the agent's owner) signs that hash.
  * 3. /api/spend/send verifies ownership and submits through the paymaster.
+ *
+ * The op bundle is passed from prepare to send so the flow works across Vercel
+ * serverless instances (the in-memory pending registry is per-instance).
  */
 export async function runUserSpend(
   signMessage: (args: {message: {raw: Hex}}) => Promise<Hex>,
@@ -38,7 +41,7 @@ export async function runUserSpend(
   const sendRes = await fetch("/api/spend/send", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({userOpHash: prep.userOpHash, signature}),
+    body: JSON.stringify({userOpHash: prep.userOpHash, signature, op: prep.op, amount: prep.amount, vendor: prep.vendor, actionId: prep.actionId}),
   });
   const sent = await sendRes.json();
   return {...sent, ok: sendRes.ok};

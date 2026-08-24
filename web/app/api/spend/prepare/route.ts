@@ -179,22 +179,25 @@ export async function POST(req: NextRequest) {
     const packed = toPacked(op, res.paymasterAndData, "0x");
     const userOpHash = (await rpc.readContract({address: EP, abi: getUserOpHashAbi, functionName: "getUserOpHash", args: [packed]})) as Hex;
 
+    const opBundle = {
+      sender,
+      nonce: toHex(nonce),
+      callData,
+      callGasLimit: toHex(op.callGasLimit),
+      verificationGasLimit: toHex(op.verificationGasLimit),
+      preVerificationGas: toHex(op.preVerificationGas),
+      maxFeePerGas: toHex(op.maxFeePerGas),
+      maxPriorityFeePerGas: toHex(op.maxPriorityFeePerGas),
+      paymaster: paymasterAddr,
+      paymasterVerificationGasLimit: toHex(PM_VGL),
+      paymasterPostOpGasLimit: toHex(PM_PGL),
+      paymasterData: slice(res.paymasterAndData, 52),
+      signature: "0x" as Hex,
+    };
+
+    // Store in-memory too for the legacy in-instance flow (same Vercel instance).
     rememberPending(userOpHash.toLowerCase(), {
-      unpacked: {
-        sender,
-        nonce: toHex(nonce),
-        callData,
-        callGasLimit: toHex(op.callGasLimit),
-        verificationGasLimit: toHex(op.verificationGasLimit),
-        preVerificationGas: toHex(op.preVerificationGas),
-        maxFeePerGas: toHex(op.maxFeePerGas),
-        maxPriorityFeePerGas: toHex(op.maxPriorityFeePerGas),
-        paymaster: paymasterAddr,
-        paymasterVerificationGasLimit: toHex(PM_VGL),
-        paymasterPostOpGasLimit: toHex(PM_PGL),
-        paymasterData: slice(res.paymasterAndData, 52),
-        signature: "0x",
-      },
+      unpacked: opBundle,
       packedForHash: packed,
       amount,
       vendor,
@@ -204,6 +207,10 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       userOpHash,
+      op: opBundle,
+      amount: amount.toString(),
+      vendor,
+      actionId,
       expiresInSeconds: 15 * 60,
     });
   } catch (e) {
