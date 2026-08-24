@@ -20,10 +20,21 @@ export default function CommercePage() {
   const {address} = useAccount();
   const {data: wallet} = useWalletClient();
   const [agentId, setAgentId] = useState("");
-  const [phase, setPhase] = useState<Phase>({kind: "idle"});
   const [agents, setAgents] = useState<MyAgent[]>([]);
   const [command, setCommand] = useState("");
   const [commandError, setCommandError] = useState("");
+  // Restore last execution result from localStorage so navigating away
+  // during the bundler poll doesn't silently lose the outcome.
+  const [phase, setPhase] = useState<Phase>(() => {
+    if (typeof window === "undefined") return {kind: "idle"};
+    try {
+      const raw = localStorage.getItem("spenda:lastCommerceResult");
+      if (!raw) return {kind: "idle"};
+      const parsed = JSON.parse(raw) as Phase;
+      if (parsed.kind === "done") return parsed;
+    } catch {}
+    return {kind: "idle"};
+  });
 
   useEffect(() => {
     if (!address || !wallet) return;
@@ -55,6 +66,7 @@ export default function CommercePage() {
     } catch (error) {
       setCommandError(friendlyErrorFrom(error));
       setPhase({kind: "idle"});
+      localStorage.removeItem("spenda:lastCommerceResult");
     }
   };
 
@@ -76,9 +88,13 @@ export default function CommercePage() {
     try {
       const outcome = await runUserSpend(wallet.signMessage.bind(wallet), intent.agent, intent.amount, intent.recipient, intent.actionId);
       rememberIntentMeta(intent);
-      setPhase((p) => ({...(p as Extract<Phase, {kind: "executing"}>), kind: "done", outcome}));
+      const done: Phase = {kind: "done", outcome, intent};
+      localStorage.setItem("spenda:lastCommerceResult", JSON.stringify(done));
+      setPhase(done);
     } catch (error) {
-      setPhase({kind: "done", outcome: {ok: false, error: "wallet_error", message: friendlyErrorFrom(error)}, intent});
+      const done: Phase = {kind: "done", outcome: {ok: false, error: "wallet_error", message: friendlyErrorFrom(error)}, intent};
+      localStorage.setItem("spenda:lastCommerceResult", JSON.stringify(done));
+      setPhase(done);
     }
   };
 
@@ -122,8 +138,8 @@ export default function CommercePage() {
     </div>
 
     {phase.kind === "intent" && <DecisionCard phase={phase} onExecute={() => executeApproved(phase.intent)} busy={false} />}
-    {phase.kind === "executing" && <p className="mt-6 rounded-[12px] border border-ash bg-bone px-4 py-3 text-body-sm text-fog">Signing and submitting the sponsored payment...</p>}
-    {phase.kind === "done" && <DoneCard phase={phase} onReset={() => setPhase({kind: "idle"})} />}
+    {phase.kind === "executing" && <p className="mt-6 rounded-[12px] border border-ash bg-bone px-4 py-3 text-body-sm text-fog">Signing and submitting the sponsored payment - stay on this page until you see the result (usually under 30 seconds, never more than 2 minutes).</p>}
+    {phase.kind === "done" && <DoneCard phase={phase} onReset={() => { localStorage.removeItem("spenda:lastCommerceResult"); setPhase({kind: "idle"}); }} />}
 
     <div className="mt-8 grid gap-4 md:grid-cols-2">
       {MERCHANTS.map((merchant) => (

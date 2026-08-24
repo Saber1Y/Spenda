@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
     const unpacked = {...pendingEntry.unpacked, signature: signature as Hex};
     await bundler.request({method: "eth_sendUserOperation", params: [unpacked, "0x0000000071727De22E5E9d8BAf0edAc6f37da032"]});
 
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < 20; i++) {
       await new Promise((r) => setTimeout(r, 3000));
       const receipt = await bundler.request({method: "eth_getUserOperationReceipt", params: [userOpHash as Hex]}).catch(() => null);
       if (receipt) {
