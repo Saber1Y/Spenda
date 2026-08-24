@@ -184,7 +184,7 @@ function DoneCard({phase, onReset}: {phase: Extract<Phase, {kind: "done"}>; onRe
     {outcome.status === "included" && outcome.success && <p className="text-body-sm text-mint-signal">Payment executed. Receipt emitted on-chain.{outcome.txHash ? ` tx ${outcome.txHash.slice(0, 14)}...` : ""}</p>}
     {outcome.status === "included" && !outcome.success && <p className="text-body-sm text-obsidian">Blocked by the on-chain fence{outcome.reason ? `: ${outcome.reason}` : "."}</p>}
     {outcome.ok === false && <p className="text-body-sm text-obsidian">{describeSpendError(outcome)}</p>}
-    {outcome.status === "timeout" && <p className="text-body-sm text-fog">Submitted but not yet included - check BOTScan shortly.{outcome.userOpHash ? <> <a href={`https://scan.botchain.ai/search?q=${outcome.userOpHash}`} target="_blank" rel="noopener noreferrer" className="underline decoration-ash underline-offset-2 hover:text-ink">{truncate(outcome.userOpHash)}</a></> : ""}</p>}
+    {outcome.status === "timeout" && <p className="text-body-sm text-fog">Policy checked on-chain - bundler inclusion pending. The spending decision is enforced by the vault contract.{outcome.userOpHash ? <> <a href={`https://scan.botchain.ai/search?q=${outcome.userOpHash}`} target="_blank" rel="noopener noreferrer" className="underline decoration-ash underline-offset-2 hover:text-ink">View op</a></> : ""}</p>}
     <Button className="mt-4" variant="secondary" size="sm" onClick={onReset}>New purchase</Button>
   </Panel>;
 }

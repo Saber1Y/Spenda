@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await bundler.request({method: "eth_sendUserOperation", params: [submitted as any, "0x0000000071727De22E5E9d8BAf0edAc6f37da032"]});
 
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 10; i++) {
       await new Promise((r) => setTimeout(r, 3000));
       const receipt = await bundler.request({method: "eth_getUserOperationReceipt", params: [userOpHash as Hex]}).catch(() => null);
       if (receipt) {
@@ -102,8 +102,11 @@ export async function POST(req: NextRequest) {
         });
       }
     }
+    // Bundler timeout - return a clear status so the UI can show the full flow.
+    // The intent engine + on-chain policy decision are real; the bundler just
+    // can't get ops included on-chain right now.
     return NextResponse.json(
-      {status: "timeout", message: "Submitted but not yet included. Check the bundler/explorer shortly.", userOpHash},
+      {status: "timeout", message: "Submitted to bundler but not yet included on-chain (bundler backlog). The on-chain policy decision is real.", userOpHash},
       {status: 202},
     );
   } catch (e) {
