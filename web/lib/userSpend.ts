@@ -7,6 +7,7 @@ export interface UserSpendOutcome {
   success?: boolean;
   reason?: string | null;
   txHash?: string | null;
+  userOpHash?: string | null;
   error?: string;
   message?: string;
 }
