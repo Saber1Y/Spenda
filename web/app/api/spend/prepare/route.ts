@@ -1,11 +1,9 @@
 import {NextResponse, type NextRequest} from "next/server";
-import {encodeFunctionData, isAddress, parseAbi, slice, toHex, type Address, type Hex} from "viem";
+import {encodeFunctionData, isAddress, parseAbi, toHex, type Address, type Hex} from "viem";
 import {privateKeyToAccount} from "viem/accounts";
 import {randomBytes} from "node:crypto";
-import {sponsor, type SignerConfig} from "@/lib/sponsor/signer";
 import {toPacked, type UserOpFields} from "@/lib/sponsor/userOp";
 import {
-  CHAIN_ID,
   EP,
   MAX_AMOUNT,
   PM_PGL,
@@ -55,22 +53,11 @@ function rateLimit(): {ok: boolean; retryAfter?: number} {
   return {ok: true};
 }
 
-function loadSignerKey(): Hex | null {
-  const key = process.env.VERIFYING_SIGNER_KEY as Hex | undefined;
-  if (!key || !/^0x[0-9a-fA-F]{64}$/.test(key)) return null;
-  return key;
-}
-
 export async function GET() {
-  return NextResponse.json({configured: loadSignerKey() !== null});
+  return NextResponse.json({configured: true});
 }
 
 export async function POST(req: NextRequest) {
-  const signerKey = loadSignerKey();
-  if (!signerKey) {
-    return NextResponse.json({error: "not_configured", message: "Live run is not configured on this server."}, {status: 503});
-  }
-
   let body: Record<string, unknown>;
   try {
     body = await req.json();
@@ -164,19 +151,10 @@ export async function POST(req: NextRequest) {
       paymasterPostOpGasLimit: PM_PGL,
     };
 
-    const cfg: SignerConfig = {
-      chainId: CHAIN_ID,
-      paymaster: paymasterAddr,
-      vault: vaultAddr,
-      registeredSenders: [sender],
-      checkInnerSelector: true,
-    };
-    const res = await sponsor(op, cfg, privateKeyToAccount(signerKey), await chainNow());
-    if (!res.sponsored) {
-      return NextResponse.json({error: "not_sponsorable", message: res.reason}, {status: 400});
-    }
-
-    const packed = toPacked(op, res.paymasterAndData, "0x");
+    // No paymaster — account pays gas directly from its BOT balance.
+    // The relayer will pre-fund the account with BOT before submitting.
+    const noPaymasterAndData = "0x" as Hex;
+    const packed = toPacked(op, noPaymasterAndData, "0x");
     const userOpHash = (await rpc.readContract({address: EP, abi: getUserOpHashAbi, functionName: "getUserOpHash", args: [packed]})) as Hex;
 
     const opBundle = {
@@ -188,10 +166,6 @@ export async function POST(req: NextRequest) {
       preVerificationGas: toHex(op.preVerificationGas),
       maxFeePerGas: toHex(op.maxFeePerGas),
       maxPriorityFeePerGas: toHex(op.maxPriorityFeePerGas),
-      paymaster: paymasterAddr,
-      paymasterVerificationGasLimit: toHex(PM_VGL),
-      paymasterPostOpGasLimit: toHex(PM_PGL),
-      paymasterData: slice(res.paymasterAndData, 52),
       signature: "0x" as Hex,
     };
 

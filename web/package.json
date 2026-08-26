@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@account-abstraction/contracts": "^0.8.0",
     "@base44/sdk": "^0.8.40",
     "@tanstack/react-query": "^5.62.0",
     "next": "^15.5.20",

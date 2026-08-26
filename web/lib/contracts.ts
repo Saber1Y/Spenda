@@ -7,15 +7,15 @@ export const CONTRACTS = {
   // call-site compatibility; there is no mock token on mainnet and nothing mints here.
   mockUSD: "0xaBabc7Ddc03e501d190C676BF3d92ef0e6e87a3C",
   vault: "0xf23147Df55089eA6bA87BF24bb4eEE6f7Cea182b",
-  factory: "0x0b860c25Dc6b2Df451AA66cFCdc7D6c6D7802F66",
+  factory: "0xBC88d6012b3bf8426C2851d3798cEB5257658332",
   paymaster: "0xfB88d06289EaDD3aE23ef5C7bEF816baFfbf4000",
   verifyingSigner: "0x98DD16d41a4Cd230f8286e593273f8D049193177",
 } as const satisfies Record<string, Address>;
 
 /** Deployed agent + its owner EOA + the allowlisted vendor. */
 export const DEMO = {
-  agent: "0x13bb632f03083782D639d37bdaA35bbd930eF70E",
-  agentOwnerEOA: "0xd16fB5a0f2Ea765A6762E816d7b1C6d3750832F4",
+  agent: "0x055b36a6db61cbadf1832fe946be0cfe19b33b59",
+  agentOwnerEOA: "0x3F5b96A494061F7338Da529e3047809Ac6a7FB84",
   vendor: "0x3F5b96A494061F7338Da529e3047809Ac6a7FB84",
 } as const satisfies Record<string, Address>;
 
@@ -27,8 +27,8 @@ export const BUNDLER_URL = "https://bundler.botchain.ai/rpc";
 
 /** The two headline artifacts for the marketing LiveProof (real, on-chain). */
 export const PROOF_TX = {
-  approved: "0xaa18954018e266b28928d20bf7ab0cef37dfcf9aeb9c5861c2aa4e3d0c0fc52d",
-  blocked: "0x5dae47f911325bcfdb21b9a67768bbcdcd28ee1f327bd5bdb35bd57506a1fcc8",
+  approved: "0xdf7fdd68949e5209730ec24fae79416579b2f162d29d195dc47e32522d52d909",
+  blocked: "0xc8077a9089676a4d22b47a670d4eceed809f867cf3f526f1c671ea369848d3a5",
 } as const;
 
 export const MUSD_DECIMALS = 6;

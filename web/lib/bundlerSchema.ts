@@ -12,10 +12,10 @@ export type UnpackedUserOp = {
   preVerificationGas: Hex;
   maxFeePerGas: Hex;
   maxPriorityFeePerGas: Hex;
-  paymaster: Address;
-  paymasterVerificationGasLimit: Hex;
-  paymasterPostOpGasLimit: Hex;
-  paymasterData: Hex;
+  paymaster?: Address;
+  paymasterVerificationGasLimit?: Hex;
+  paymasterPostOpGasLimit?: Hex;
+  paymasterData?: Hex;
   signature: Hex;
 };
 

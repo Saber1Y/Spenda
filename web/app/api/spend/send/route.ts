@@ -1,20 +1,19 @@
 import {NextResponse, type NextRequest} from "next/server";
-import {parseAbi, verifyMessage, type Hex} from "viem";
+import {parseAbi, verifyMessage, type Hex, type Address} from "viem";
 import {
   bundler,
   classify,
   rpc,
   takePending,
 } from "@/lib/sponsor/userFlow";
+import {relayHandleOps} from "@/lib/sponsor/relayer";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 // Submits a user-signed sponsored spend that /api/spend/prepare previously
-// built. The op itself comes from the server-side pending registry (never from
-// the client), so the only client-supplied values are the userOpHash and the
-// wallet signature over it. We additionally check the signature recovers to the
-// agent account's on-chain owner before spending paymaster gas.
+// built. Tries the BOT bundler first; if it fails or times out, falls back
+// to submitting handleOps directly via the treasury EOA (fallback relayer).
 
 const accountAbi = parseAbi(["function owner() view returns (address)"]);
 
@@ -23,6 +22,12 @@ interface OpReceipt {
   reason?: string;
   actualGasCost?: string;
   receipt?: {transactionHash?: string};
+}
+
+function loadTreasuryKey(): Hex | null {
+  const key = process.env.SPENDA_TREASURY_KEY as Hex | undefined;
+  if (!key || !/^0x[0-9a-fA-F]{64}$/.test(key)) return null;
+  return key;
 }
 
 export async function GET() {
@@ -83,31 +88,83 @@ export async function POST(req: NextRequest) {
     }
 
     const submitted = {...unpacked, signature: signature as Hex};
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await bundler.request({method: "eth_sendUserOperation", params: [submitted as any, "0x0000000071727De22E5E9d8BAf0edAc6f37da032"]});
 
-    for (let i = 0; i < 10; i++) {
-      await new Promise((r) => setTimeout(r, 3000));
-      const receipt = await bundler.request({method: "eth_getUserOperationReceipt", params: [userOpHash as Hex]}).catch(() => null);
-      if (receipt) {
-        const r = receipt as OpReceipt;
-        return NextResponse.json({
-          status: "included",
-          success: r.success === true,
-          reason: r.reason ?? null,
-          txHash: r.receipt?.transactionHash ?? null,
-          actualGasCostWei: r.actualGasCost ?? null,
-          amountBaseUnits: amount?.toString() ?? null,
-          vendor: vendor ?? null,
-        });
+    // --- Layer 1: Try the bundler ---
+    let bundlerOk = false;
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await bundler.request({method: "eth_sendUserOperation", params: [submitted as any, "0x0000000071727De22E5E9d8BAf0edAc6f37da032"]});
+      for (let i = 0; i < 10; i++) {
+        await new Promise((r) => setTimeout(r, 3000));
+        const receipt = await bundler.request({method: "eth_getUserOperationReceipt", params: [userOpHash as Hex]}).catch(() => null);
+        if (receipt) {
+          const r = receipt as OpReceipt;
+          return NextResponse.json({
+            status: "included",
+            success: r.success === true,
+            reason: r.reason ?? null,
+            txHash: r.receipt?.transactionHash ?? null,
+            actualGasCostWei: r.actualGasCost ?? null,
+            amountBaseUnits: amount?.toString() ?? null,
+            vendor: vendor ?? null,
+          });
+        }
       }
+    } catch {
+      // Bundler rejected the op (e.g. AA33 paymaster revert). Fall through to relay.
     }
-    // Bundler timeout - return a clear status so the UI can show the full flow.
-    // The intent engine + on-chain policy decision are real; the bundler just
-    // can't get ops included on-chain right now.
+
+    // --- Layer 2: Fallback relayer - submit handleOps directly ---
+    const treasuryKey = loadTreasuryKey();
+    if (!treasuryKey) {
+      return NextResponse.json(
+        {status: "timeout", message: "Policy checked on-chain. Bundler unavailable and no relayer configured.", userOpHash},
+        {status: 202},
+      );
+    }
+
+    // Pack the UserOp into the format handleOps expects.
+    // The prepare route stores unpacked fields (callGasLimit, verificationGasLimit, etc.)
+    // so we must pack them into accountGasLimits and gasFees here.
+    const concat16 = (a: bigint, b: bigint) => {
+      const ah = a.toString(16).padStart(32, "0");
+      const bh = b.toString(16).padStart(32, "0");
+      return ("0x" + ah + bh) as Hex;
+    };
+    const vgl = BigInt(unpacked.verificationGasLimit as string);
+    const cgl = BigInt(unpacked.callGasLimit as string);
+    const maxPrio = BigInt(unpacked.maxPriorityFeePerGas as string);
+    const maxFee = BigInt(unpacked.maxFeePerGas as string);
+
+    const packedOp = {
+      sender: unpacked.sender as Address,
+      nonce: unpacked.nonce as Hex,
+      initCode: (unpacked.initCode as Hex) || "0x",
+      callData: unpacked.callData as Hex,
+      accountGasLimits: concat16(vgl, cgl),
+      preVerificationGas: unpacked.preVerificationGas as Hex,
+      gasFees: concat16(maxPrio, maxFee),
+      paymasterAndData: "0x" as Hex,
+      signature: signature as Hex,
+    };
+
+    const relayResult = await relayHandleOps([packedOp], treasuryKey);
+
+    if (relayResult.ok) {
+      return NextResponse.json({
+        status: "included",
+        success: true,
+        txHash: relayResult.txHash,
+        reason: null,
+        actualGasCostWei: null,
+        amountBaseUnits: amount?.toString() ?? null,
+        vendor: vendor ?? null,
+      });
+    }
+
     return NextResponse.json(
-      {status: "timeout", message: "Submitted to bundler but not yet included on-chain (bundler backlog). The on-chain policy decision is real.", userOpHash},
-      {status: 202},
+      {status: "timeout", message: relayResult.error ?? "Relay failed", userOpHash},
+      {status: 502},
     );
   } catch (e) {
     const err = e as {details?: string; shortMessage?: string; message?: string};
