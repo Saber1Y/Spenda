@@ -2,7 +2,7 @@ import {NextResponse, type NextRequest} from "next/server";
 import {isAddress, parseAbi, type Address, type Hex} from "viem";
 import {randomBytes} from "node:crypto";
 import {rpc} from "@/lib/sponsor/userFlow";
-import {CONTRACTS} from "@/lib/contracts";
+import {CONTRACTS, DEMO} from "@/lib/contracts";
 import {findMerchant} from "@/lib/merchants";
 import {scoreIntent, RISK_POLICY, riskLevel} from "@/lib/riskPolicy";
 
@@ -102,7 +102,10 @@ export async function POST(req: NextRequest) {
     if (!targetOk) return fail("Vendor is not allowlisted for this agent");
     if (!tokenOk) return fail("Token is not allowlisted for this agent");
 
-    const knownVendor = Object.values(CONTRACTS).some((v) => typeof v === "string" && v.toLowerCase() === (vendor as string).toLowerCase());
+    const vendorLower = (vendor as string).toLowerCase();
+    const knownVendor =
+      Object.values(CONTRACTS).some((v) => typeof v === "string" && v.toLowerCase() === vendorLower) ||
+      Object.values(DEMO).some((v) => typeof v === "string" && v.toLowerCase() === vendorLower);
     const riskScore = scoreIntent({amountBaseUnits: amount, spentTodayBaseUnits: policy.spentToday, category, knownVendor});
     const needsHuman = riskScore >= RISK_POLICY.humanApprovalScoreMin;
 
