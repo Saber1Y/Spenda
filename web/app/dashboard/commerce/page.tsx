@@ -9,6 +9,7 @@ import {runUserSpend, describeSpendError, type UserSpendOutcome} from "@/lib/use
 import {friendlyErrorFrom} from "@/lib/errorMessages";
 import {savePendingApproval, rememberIntentMeta, loadMyAgents, type MyAgent} from "@/lib/intentStore";
 import type {Intent, PolicySnapshot} from "@/lib/intentTypes";
+import type {DiscoveredIntent} from "@/app/api/discover/route";
 import {Button} from "@/components/ui/Button";
 import {Chip} from "@/components/ui/Chip";
 import {Panel} from "@/components/dashboard/Panel";
@@ -23,8 +24,7 @@ export default function CommercePage() {
   const [agents, setAgents] = useState<MyAgent[]>([]);
   const [command, setCommand] = useState("");
   const [commandError, setCommandError] = useState("");
-  // Restore last execution result from localStorage so navigating away
-  // during the bundler poll doesn't silently lose the outcome.
+  const [discovered, setDiscovered] = useState<DiscoveredIntent[]>([]);
   const [phase, setPhase] = useState<Phase>(() => {
     if (typeof window === "undefined") return {kind: "idle"};
     try {
@@ -38,8 +38,6 @@ export default function CommercePage() {
 
   useEffect(() => {
     if (!address || !wallet) return;
-    // Candidate paying agents: the user's own created agents (localStorage
-    // registry written at creation time) plus the demo pilot agent.
     const candidates = [...loadMyAgents()];
     if (!candidates.some((c) => c.address === active.agent)) {
       candidates.unshift({address: active.agent, name: "Demo pilot agent"});
@@ -47,6 +45,22 @@ export default function CommercePage() {
     setAgents(candidates);
     setAgentId((current) => current || candidates[0]?.address || "");
   }, [address, wallet, active.agent]);
+
+  // Poll discovered intents every 10 seconds
+  useEffect(() => {
+    const fetchDiscovered = async () => {
+      try {
+        const res = await fetch("/api/discover");
+        if (res.ok) {
+          const data = await res.json();
+          setDiscovered(data.items ?? []);
+        }
+      } catch {}
+    };
+    fetchDiscovered();
+    const interval = setInterval(fetchDiscovered, 10000);
+    return () => clearInterval(interval);
+  }, []);
 
   const createIntent = async (body: Record<string, unknown>) => {
     if (!agentId) return;
@@ -98,11 +112,59 @@ export default function CommercePage() {
     }
   };
 
+  const executeDiscovered = async (item: DiscoveredIntent) => {
+    if (!wallet) return;
+    const intent: Intent = {
+      intentId: item.intentId,
+      actionId: item.actionId,
+      agent: item.agent,
+      token: item.token,
+      amount: item.amount,
+      recipient: item.recipient,
+      category: item.category,
+      label: item.label,
+      expiresAt: item.expiresAt,
+      decision: item.decision,
+      decisionReason: item.decisionReason,
+      riskScore: item.riskScore,
+      riskLevel: item.riskLevel,
+    };
+    setPhase({kind: "executing", intent, policy: {
+      maxPerTxUsdt: 25, dailyCapUsdt: 100, spentTodayUsdt: 0, remainingTodayUsdt: 100,
+      expirySeconds: item.expiresAt, active: true,
+    }});
+    try {
+      const outcome = await runUserSpend(wallet.signMessage.bind(wallet), intent.agent, intent.amount, intent.recipient, intent.actionId);
+      rememberIntentMeta(intent);
+      const done: Phase = {kind: "done", outcome, intent};
+      localStorage.setItem("spenda:lastCommerceResult", JSON.stringify(done));
+      setPhase(done);
+    } catch (error) {
+      const done: Phase = {kind: "done", outcome: {ok: false, error: "wallet_error", message: friendlyErrorFrom(error)}, intent};
+      localStorage.setItem("spenda:lastCommerceResult", JSON.stringify(done));
+      setPhase(done);
+    }
+  };
+
   const busy = phase.kind === "deciding" || phase.kind === "executing";
 
   return <div className="max-w-[1100px] px-8 py-8">
     <div><h1 className="font-heading text-heading text-aubergine" style={{fontWeight: 350}}>Spenda Commerce</h1>
-      <p className="mt-1 text-[15px] text-fog">Real BOT Chain payment authorization with simulated merchant fulfillment.</p></div>
+      <p className="mt-1 text-[15px] text-fog">Real BOT Chain payment authorization. The agent discovers what needs paying. Spenda decides whether it's allowed.</p></div>
+
+    {/* Architecture explainer */}
+    <div className="mt-5 rounded-[12px] border border-ash bg-bone px-4 py-3">
+      <p className="text-caption text-fog">Architecture</p>
+      <div className="mt-2 flex flex-wrap items-center gap-2 text-body-sm">
+        <span className="rounded-[6px] bg-lavender/20 px-2 py-0.5 text-lavender-dark">Email / Calendar / API</span>
+        <span className="text-fog">→</span>
+        <span className="rounded-[6px] bg-aubergine/10 px-2 py-0.5 text-aubergine">AI Agent discovers need</span>
+        <span className="text-fog">→</span>
+        <span className="rounded-[6px] bg-mint/20 px-2 py-0.5 text-mint-dark">Spenda evaluates policy</span>
+        <span className="text-fog">→</span>
+        <span className="rounded-[6px] bg-obsidian/10 px-2 py-0.5 text-obsidian">Blockchain execution</span>
+      </div>
+    </div>
 
     <div className="mt-5 flex flex-wrap items-center gap-3">
       <Chip tone="outline">Merchant Sandbox</Chip>
@@ -113,6 +175,41 @@ export default function CommercePage() {
       </label>
     </div>
     {!address && <p className="mt-4 rounded-[12px] border border-ash bg-bone px-4 py-3 text-body-sm text-fog">Connect a wallet to create intents. The paying agent must be one you own (or the demo pilot).</p>}
+
+    {/* Agent Discovered Tasks */}
+    {discovered.length > 0 && <div className="mt-6">
+      <Panel title="Agent Discovered" subtitle={`${discovered.length} spending need${discovered.length > 1 ? "s" : ""} detected by connected tools`}>
+        <div className="flex flex-col gap-3">
+          {discovered.map((item) => (
+            <div key={item.intentId} className="flex items-start justify-between gap-4 rounded-[10px] border border-ash bg-bone px-4 py-3">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-body-sm font-medium text-obsidian">{item.label}</span>
+                  <Chip tone={item.decision === "approved" ? "mint" : "lavender"} size="sm">{item.decision.replace("_", " ")}</Chip>
+                  <Chip tone="outline" size="sm">{item.source}</Chip>
+                </div>
+                <p className="mt-1 text-caption text-fog truncate">{item.reason}</p>
+                <div className="mt-1 flex items-center gap-3 text-caption text-fog">
+                  <span>{(Number(item.amount) / 1e6).toFixed(2)} USDT</span>
+                  <span>•</span>
+                  <span>risk {item.riskScore}/100</span>
+                  <span>•</span>
+                  <span>to {item.recipient.slice(0, 8)}...{item.recipient.slice(-4)}</span>
+                </div>
+              </div>
+              {item.decision === "approved" && (
+                <Button variant="primary" size="sm" onClick={() => executeDiscovered(item)} disabled={busy}>
+                  Sign &amp; pay
+                </Button>
+              )}
+              {item.decision === "human_approval" && (
+                <span className="text-body-sm text-aubergine shrink-0">Needs approval</span>
+              )}
+            </div>
+          ))}
+        </div>
+      </Panel>
+    </div>}
 
     <div className="mt-6">
       <Panel title="What should the agent buy?" subtitle="plain English - parsed on your device, decided by your on-chain policy">
@@ -191,7 +288,6 @@ function DoneCard({phase, onReset}: {phase: Extract<Phase, {kind: "done"}>; onRe
 
 const truncate = (value: string) => value.length > 14 ? `${value.slice(0, 8)}...${value.slice(-4)}` : value;
 
-/** Expand terse contract fence strings into sentences. */
 function friendlyDecisionReason(reason: string): string {
   const map: Record<string, string> = {
     "Agent policy is inactive": "This agent's policy is inactive",
